@@ -118,7 +118,7 @@ Yêu cầu hệ thống đã cài đặt **Python 3.10 – 3.12**.
 Trang web sử dụng ngôn ngữ thiết kế **Verdant** mang phong cách tối giản cao cấp, thân thiện với thiên nhiên:
 
 * **Typography:**
-  - **Tiêu đề lớn/vừa (Display/Headline):** Sử dụng phông chữ **Urbanist** (sans-serif) hình học, thanh lịch và cực kỳ sang trọng, tối ưu cho thương hiệu organic.
+  - **Tiêu đề lớn/vừa (Display/Headline):** Sử dụng phông chữ **Manrope** (sans-serif) sắc nét, hiện đại, tạo cảm giác chuyên nghiệp, gọn gàng.
   - **Nội dung (Body/Labels):** Sử dụng phông chữ **Be Vietnam Pro** chân thực, tối ưu hóa hiển thị tiếng Việt trên mọi thiết bị.
 * **Palette màu tự nhiên:**
   - `Verdant Green` (#007A36): Màu xanh lá mướt mát đại diện cho nông trại organic (Primary).
