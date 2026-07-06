@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from apps.products.models import Product
 
 class Order(models.Model):
@@ -22,7 +23,7 @@ class Order(models.Model):
     full_name = models.CharField(max_length=200, verbose_name="Họ và tên")
     phone_number = models.CharField(max_length=15, verbose_name="Số điện thoại")
     shipping_address = models.TextField(verbose_name="Địa chỉ giao hàng")
-    total_price = models.IntegerField(default=0, verbose_name="Tổng tiền (VND)")
+    total_price = models.IntegerField(default=0, validators=[MinValueValidator(0)], verbose_name="Tổng tiền (VND)")
     status = models.CharField(
         max_length=15,
         choices=STATUS_CHOICES,
@@ -59,8 +60,8 @@ class OrderItem(models.Model):
         related_name="order_items",
         verbose_name="Sản phẩm"
     )
-    quantity = models.PositiveIntegerField(default=1, verbose_name="Số lượng")
-    price = models.IntegerField(verbose_name="Đơn giá lúc mua")
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name="Số lượng")
+    price = models.IntegerField(validators=[MinValueValidator(0)], verbose_name="Đơn giá lúc mua")
     batch = models.ForeignKey(
         "products.Batch",
         on_delete=models.SET_NULL,

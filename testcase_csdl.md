@@ -21,6 +21,16 @@ Nhằm đảm bảo tính chính xác và tuân thủ các chuẩn mực dữ li
 | `email` | `EmailField`| Định dạng email doanh nghiệp. Bắt buộc nhập. | Hòm thư điện tử chính thức nhận thông tin giao dịch. |
 | `business_license` | `FileField` | Bắt buộc đính kèm tệp tài liệu/hình ảnh khi đăng ký. | Giấy chứng nhận đăng ký kinh doanh/Giấy chứng nhận cơ sở đủ điều kiện ATVSTP. |
 
+### 3. Các Mô hình Sản phẩm & Giao dịch (`Product`, `Batch`, `Order`, `OrderItem`)
+| Mô hình (Model) | Tên trường (Field) | Ràng buộc nghiệp vụ (Xác thực dữ liệu) | Ý nghĩa / Quy chuẩn |
+| :--- | :--- | :--- | :--- |
+| `Product` | `price` | `MinValueValidator(1000)` (Tối thiểu 1.000đ). | Giá trị bán lẻ thực tế hợp lý tại thị trường Việt Nam. |
+| `Batch` | `initial_quantity` | `MinValueValidator(1)` (Tối thiểu 1 đơn vị giống). | Số lượng giống gieo ban đầu của một lô sản xuất phải lớn hơn 0. |
+| `Batch` | `remaining_quantity` | `MinValueValidator(0)` (Không được phép âm). | Số lượng tồn kho còn lại của lô hàng. |
+| `Order` | `total_price` | `MinValueValidator(0)` (Không được phép âm). | Tổng giá trị đơn hàng thực tế. |
+| `OrderItem` | `quantity` | `MinValueValidator(1)` (Tối thiểu mua 1 sản phẩm). | Số lượng đặt mua cho mỗi dòng sản phẩm. |
+| `OrderItem` | `price` | `MinValueValidator(0)` (Không được phép âm). | Đơn giá sản phẩm tại thời điểm mua. |
+
 ---
 
 

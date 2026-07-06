@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from django.core.validators import RegexValidator, MinLengthValidator
+from django.core.validators import RegexValidator, MinLengthValidator, MinValueValidator
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Tên danh mục")
@@ -122,7 +122,7 @@ class Product(models.Model):
     name = models.CharField(max_length=200, verbose_name="Tên sản phẩm")
     slug = models.SlugField(unique=True)
     origin = models.CharField(max_length=200, verbose_name="Xuất xứ")
-    price = models.IntegerField(verbose_name="Giá bán (VND)")
+    price = models.IntegerField(validators=[MinValueValidator(1000)], verbose_name="Giá bán (VND)")
     unit = models.CharField(max_length=50, verbose_name="Đơn vị tính")
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.0, verbose_name="Đánh giá")
     reviews_count = models.IntegerField(default=0, verbose_name="Số lượng đánh giá")
@@ -221,8 +221,8 @@ class Batch(models.Model):
         verbose_name="Sản phẩm"
     )
     batch_number = models.CharField(max_length=100, unique=True, verbose_name="Mã số lô hàng")
-    initial_quantity = models.PositiveIntegerField(verbose_name="Số lượng gieo giống ban đầu")
-    remaining_quantity = models.PositiveIntegerField(verbose_name="Số lượng tồn kho của lô")
+    initial_quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name="Số lượng gieo giống ban đầu")
+    remaining_quantity = models.PositiveIntegerField(validators=[MinValueValidator(0)], verbose_name="Số lượng tồn kho của lô")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="CULTIVATING")
     seeding_date = models.DateField(verbose_name="Ngày gieo giống")
     harvest_date = models.DateField(null=True, blank=True, verbose_name="Ngày thu hoạch")
