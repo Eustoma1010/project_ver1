@@ -157,6 +157,13 @@
                                     <div class="um-divider"></div>
                                 {% endif %}
 
+                                <!-- Auditor Section -->
+                                {% if user.role == 'AUDITOR' %}
+                                    <div class="um-section-label">Kiểm định viên</div>
+                                    <a href="{% url 'farm:auditor_dashboard' %}" class="um-link text-primary font-semibold"><i data-lucide="shield-check" class="w-4 h-4 text-primary"></i> Dashboard kiểm định</a>
+                                    <div class="um-divider"></div>
+                                {% endif %}
+
                                 <!-- Admin Section -->
                                 {% if user.is_staff or user.is_superuser %}
                                     <div class="um-section-label">Quản trị viên</div>
@@ -171,7 +178,7 @@
                                 <a href="/users/profile/" class="um-link"><i data-lucide="user-circle" class="w-4 h-4 text-muted-foreground"></i> Hồ sơ cá nhân</a>
                                 <a href="/favorites/" class="um-link"><i data-lucide="heart" class="w-4 h-4 text-muted-foreground"></i> Yêu thích</a>
 
-                                {% if not user.role == 'FARMER' and not user.farms.first.approved %}
+                                {% if not user.role == 'FARMER' and not user.farms.first.approved and not user.role == 'AUDITOR' %}
                                     <a href="/farm/" class="um-link text-primary font-semibold"><i data-lucide="store" class="w-4 h-4 text-primary"></i> Trở thành nhà cung cấp</a>
                                 {% endif %}
 

@@ -4,6 +4,23 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from .models import CustomUser
 
+def get_login_redirect_url(user):
+    if user.is_staff or user.role == "ADMIN":
+        return "admin-reports"
+    elif user.role == "AUDITOR":
+        return "farm:auditor_dashboard"
+    elif user.role == "FARMER":
+        from apps.products.models import Farm
+        try:
+            farm = Farm.objects.get(owner=user)
+            if farm.status == "APPROVED" or farm.status == "SUSPENDED":
+                return "farm:dashboard"
+            else:
+                return "farm:home"
+        except Farm.DoesNotExist:
+            return "farm:home"
+    return "home"
+
 def signup_view(request):
     if request.user.is_authenticated:
         return redirect("home")
@@ -28,13 +45,13 @@ def signup_view(request):
             )
             login(request, user)
             messages.success(request, f"Đăng ký tài khoản thành công! Chào mừng {username}.")
-            return redirect("home")
+            return redirect(get_login_redirect_url(user))
             
     return render(request, "users/signup.html")
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect(get_login_redirect_url(request.user))
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
@@ -42,8 +59,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f"Chào mừng quay trở lại, {username}!")
-            # All users are redirected to home after login for a unified entry point
-            return redirect('home')
+            return redirect(get_login_redirect_url(user))
         else:
             messages.error(request, "Tên đăng nhập hoặc mật khẩu không chính xác.")
     return render(request, "users/login.html")

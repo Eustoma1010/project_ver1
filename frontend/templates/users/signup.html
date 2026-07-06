@@ -44,7 +44,14 @@
                     class="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 >
             </div>
-            <input type="hidden" name="role" value="BUYER">
+            <div>
+                <label class="block text-xs font-bold text-muted-foreground uppercase mb-1">Vai trò tài khoản</label>
+                <select name="role" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <option value="BUYER">Người mua (Khách hàng)</option>
+                    <option value="FARMER">Nông dân (Nhà cung cấp)</option>
+                    <option value="AUDITOR">Kiểm định viên (Bên thứ ba / Auditor)</option>
+                </select>
+            </div>
 
             <div>
                 <label class="block text-xs font-bold text-muted-foreground uppercase mb-1">Số điện thoại</label>

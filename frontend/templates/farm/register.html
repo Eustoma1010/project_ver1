@@ -9,80 +9,173 @@
       <h2 class="text-2xl font-bold font-display text-foreground mt-2">Đăng Ký Nhà Cung Cấp</h2>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="space-y-5 variant-form">
-      {% csrf_token %}
-      <!-- Section 1 -->
-      <div class="space-y-4">
-        <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="building-2" class="w-4 h-4 text-primary"></i> Doanh nghiệp</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Tên nhà cung cấp *</label>
-            <input type="text" name="name" required class="input-name w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Tên công ty/HTX...">
+    {% if status_pending %}
+      <div class="space-y-6 py-4">
+        <div class="p-6 rounded-[20px] {% if farm.status == 'REJECTED' %}bg-red-50/50 border border-red-200/50 text-red-800{% elif farm.status == 'SUSPENDED' %}bg-amber-50/50 border border-amber-200/50 text-amber-800{% else %}bg-emerald-50/50 border border-emerald-200/50 text-emerald-800{% endif %}">
+          <div class="flex items-start gap-3.5">
+            {% if farm.status == 'PENDING_ADMIN' %}
+              <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 animate-pulse"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
+              <div>
+                <h4 class="font-bold text-sm">Bước 1: Chờ Admin phê duyệt hành chính</h4>
+                <p class="text-xs text-foreground/75 mt-1 leading-relaxed">Hồ sơ nông trại đã được tiếp nhận. Ban quản trị đang tiến hành đối chiếu thông tin pháp lý ban đầu (Bước 1/2).</p>
+              </div>
+            {% elif farm.status == 'PENDING_AUDITOR' %}
+              <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 animate-pulse"><i data-lucide="clipboard-check" class="w-5 h-5"></i></div>
+              <div>
+                <h4 class="font-bold text-sm">Bước 2: Chờ Kiểm định viên phê duyệt</h4>
+                <p class="text-xs text-foreground/75 mt-1 leading-relaxed">Hồ sơ hành chính đạt chuẩn. Đang chờ Kiểm định viên thẩm định thực tế và cấp chứng nhận chất lượng (Bước 2/2).</p>
+              </div>
+            {% elif farm.status == 'REJECTED' %}
+              <div class="w-10 h-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0"><i data-lucide="x-circle" class="w-5 h-5"></i></div>
+              <div>
+                <h4 class="font-bold text-sm">Đăng ký bị Từ chối</h4>
+                <p class="text-xs text-foreground/75 mt-1 leading-relaxed">Yêu cầu đăng ký nhà cung cấp của bạn đã bị từ chối phê duyệt bởi Kiểm định viên.</p>
+              </div>
+            {% elif farm.status == 'SUSPENDED' %}
+              <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i data-lucide="ban" class="w-5 h-5"></i></div>
+              <div>
+                <h4 class="font-bold text-sm">Tài khoản bị Đình chỉ hoạt động</h4>
+                <p class="text-xs text-foreground/75 mt-1 leading-relaxed">Do trượt đợt đánh giá định kỳ hoặc đột xuất, tài khoản của bạn tạm thời bị khóa quyền đăng ký và thay đổi thông tin.</p>
+              </div>
+            {% endif %}
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Mã số thuế *</label>
-            <input type="text" name="tax_code" required class="input-tax-code w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="0123456789">
+        </div>
+
+        <!-- Display Farm Info Summary -->
+        <div class="border border-border rounded-[20px] p-6 space-y-4 text-xs">
+          <h4 class="font-bold text-sm text-foreground flex items-center gap-1.5 border-b border-border pb-3">
+            <i data-lucide="info" class="w-4 h-4 text-primary"></i> Chi tiết hồ sơ đăng ký
+          </h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-muted-foreground block mb-0.5">Tên nhà cung cấp:</span>
+              <strong class="text-foreground text-sm font-display">{{ farm.name }}</strong>
+            </div>
+            <div>
+              <span class="text-muted-foreground block mb-0.5">Mã số thuế:</span>
+              <strong class="text-foreground text-sm font-mono">{{ farm.tax_code }}</strong>
+            </div>
+            <div>
+              <span class="text-muted-foreground block mb-0.5">Vùng miền hoạt động:</span>
+              <strong class="text-foreground">{{ farm.region }} ({% if farm.province %}{{ farm.province }}{% else %}Toàn quốc{% endif %})</strong>
+            </div>
+            <div>
+              <span class="text-muted-foreground block mb-0.5">Số điện thoại liên hệ:</span>
+              <strong class="text-foreground">{{ farm.phone }}</strong>
+            </div>
+            {% if farm.business_license %}
+            <div class="col-span-2">
+              <span class="text-muted-foreground block mb-1">Ảnh Giấy phép kinh doanh đã tải lên:</span>
+              <div class="border border-border rounded-xl p-2.5 bg-background flex items-center justify-between">
+                <span class="font-mono text-[10px] truncate max-w-xs">{{ farm.business_license.name }}</span>
+                <a href="{{ farm.business_license.url }}" target="_blank" class="text-xs text-primary hover:underline font-semibold flex items-center gap-1"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> Xem file</a>
+              </div>
+            </div>
+            {% endif %}
+            <div class="col-span-2">
+              <span class="text-muted-foreground block mb-0.5">Giới thiệu:</span>
+              <p class="text-foreground bg-muted p-3.5 rounded-xl mt-1.5 italic">{{ farm.description|default:"Chưa có giới thiệu." }}</p>
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- Section 2 -->
-      <div class="space-y-4 pt-4 border-t border-dashed border-border">
-        <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="contact" class="w-4 h-4 text-primary"></i> Liên hệ</h3>
-        <div class="grid grid-cols-2 gap-4">
+    {% else %}
+      {% if status_rejected %}
+        <div class="mb-6 p-5 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-3 animate-in shadow-3xs">
+          <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 shrink-0 mt-0.5"></i>
           <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Số điện thoại *</label>
-            <input type="text" name="phone" required class="input-phone w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="09xxxxxxxx">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Email *</label>
-            <input type="email" name="email" required class="input-email w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="contact@domain.com">
+            <h4 class="font-extrabold text-sm">Hồ sơ đăng ký bị từ chối phê duyệt</h4>
+            <p class="mt-1 opacity-90 leading-relaxed">
+              Yêu cầu đăng ký nhà cung cấp của bạn đã bị từ chối bởi Kiểm định viên. Vui lòng kiểm tra và sửa đổi thông tin chính xác bên dưới, sau đó bấm <strong>"Gửi lại hồ sơ"</strong> để yêu cầu xét duyệt lại.
+            </p>
           </div>
         </div>
-      </div>
-
-      <!-- Section 3 -->
-      <div class="space-y-4 pt-4 border-t border-dashed border-border">
-        <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4 text-primary"></i> Vận hành</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Vùng miền *</label>
-            <select name="region" required class="region-select w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
-              <option value="">-- Chọn Vùng Miền --</option>
-              <option value="Miền Bắc">Miền Bắc</option>
-              <option value="Miền Trung">Miền Trung</option>
-              <option value="Miền Nam">Miền Nam</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Tỉnh thành *</label>
-            <select name="province" required class="province-select w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
-              <option value="">-- Chọn Tỉnh thành --</option>
-            </select>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="space-y-5 variant-form">
+        {% csrf_token %}
+        <!-- Section 1 -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="building-2" class="w-4 h-4 text-primary"></i> Doanh nghiệp</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Tên nhà cung cấp *</label>
+              <input type="text" name="name" required value="{{ form.name.value|default:'' }}" class="input-name w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Tên công ty/HTX...">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Mã số thuế *</label>
+              <input type="text" name="tax_code" required value="{{ form.tax_code.value|default:'' }}" class="input-tax-code w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="0123456789">
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Tải ảnh lên</label>
-            <input type="file" name="image_file" class="input-file w-full text-xs text-foreground/75 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-secondary file:text-primary hover:file:bg-secondary/80 transition" accept="image/*">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-foreground/80 mb-1">Hoặc Link ảnh URL</label>
-            <input type="url" name="image_url" class="input-url w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="https://">
+        <!-- Section 2 -->
+        <div class="space-y-4 pt-4 border-t border-dashed border-border">
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="contact" class="w-4 h-4 text-primary"></i> Liên hệ</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Số điện thoại *</label>
+              <input type="text" name="phone" required value="{{ form.phone.value|default:'' }}" class="input-phone w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="09xxxxxxxx">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Email *</label>
+              <input type="email" name="email" required value="{{ form.email.value|default:'' }}" class="input-email w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="contact@domain.com">
+            </div>
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-foreground/80 mb-1">Giới thiệu doanh nghiệp</label>
-          <textarea name="description" rows="3" class="input-desc w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Năng lực sản xuất..."></textarea>
-        </div>
-      </div>
+        <!-- Section 3 -->
+        <div class="space-y-4 pt-4 border-t border-dashed border-border">
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="map-pin" class="w-4 h-4 text-primary"></i> Vận hành</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Vùng miền *</label>
+              <select name="region" required class="region-select w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+                <option value="">-- Chọn Vùng Miền --</option>
+                <option value="Miền Bắc" {% if form.region.value == 'Miền Bắc' %}selected{% endif %}>Miền Bắc</option>
+                <option value="Miền Trung" {% if form.region.value == 'Miền Trung' %}selected{% endif %}>Miền Trung</option>
+                <option value="Miền Nam" {% if form.region.value == 'Miền Nam' %}selected{% endif %}>Miền Nam</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Tỉnh thành *</label>
+              <select name="province" required class="province-select w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+                <option value="">-- Chọn Tỉnh thành --</option>
+              </select>
+            </div>
+          </div>
 
-      <div class="pt-4">
-        <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-full transition shadow-md">Gửi Hồ Sơ</button>
-      </div>
-    </form>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Tải ảnh lên</label>
+              <input type="file" name="image_file" class="input-file w-full text-xs text-foreground/75 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-secondary file:text-primary hover:file:bg-secondary/80 transition" accept="image/*">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Hoặc Link ảnh URL</label>
+              <input type="url" name="image_url" value="{{ form.image_url.value|default:'' }}" class="input-url w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="https://">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-foreground/80 mb-1">Ảnh Giấy phép kinh doanh {% if not status_rejected or not farm.business_license %}*{% endif %}</label>
+            <input type="file" name="business_license" {% if not status_rejected or not farm.business_license %}required{% endif %} class="w-full text-xs text-foreground/75 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-secondary file:text-primary hover:file:bg-secondary/80 transition" accept="image/*">
+            {% if farm.business_license %}
+              <p class="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Đã tải lên file: <span class="font-mono text-foreground">{{ farm.business_license.name }}</span></p>
+            {% endif %}
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-foreground/80 mb-1">Giới thiệu doanh nghiệp</label>
+            <textarea name="description" rows="3" class="input-desc w-full px-3 py-2 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Năng lực sản xuất...">{{ form.description.value|default:'' }}</textarea>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-full transition shadow-md">
+            {% if status_rejected %}Gửi Lại Hồ Sơ{% else %}Gửi Hồ Sơ{% endif %}
+          </button>
+        </div>
+      </form>
+    {% endif %}
   </div>
 
   <!-- Right: Live Preview Card -->
@@ -190,6 +283,43 @@
           reader.readAsDataURL(file);
         }
       }
+    });
+
+    // Pre-fill region and province on load if editing/rejected
+    window.addEventListener('DOMContentLoaded', () => {
+      const initialRegion = "{{ form.region.value|default:'' }}";
+      const initialProvince = "{{ form.province.value|default:'' }}";
+      
+      if (initialRegion) {
+        const regionSelect = document.querySelector('.region-select');
+        if (regionSelect) {
+          regionSelect.value = initialRegion;
+          // Trigger region change programmatically
+          const event = new Event('change', { bubbles: true });
+          regionSelect.dispatchEvent(event);
+          
+          // Wait briefly and select province
+          setTimeout(() => {
+            const provinceSelect = document.querySelector('.province-select');
+            if (provinceSelect && initialProvince) {
+              provinceSelect.value = initialProvince;
+              // Trigger preview update
+              const provEvent = new Event('change', { bubbles: true });
+              provinceSelect.dispatchEvent(provEvent);
+            }
+          }, 50);
+        }
+      }
+      
+      // Trigger input events to refresh live preview card on page load
+      setTimeout(() => {
+        ['input-name', 'input-tax-code', 'input-phone', 'input-email', 'input-desc', 'input-url'].forEach(cls => {
+          const el = document.querySelector('.' + cls);
+          if (el && el.value) {
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+      }, 100);
     });
 
     function updatePreviews(selector, text) {

@@ -384,14 +384,25 @@
                                 <span class="font-bold text-primary text-base">{{ product.price|intcomma }}đ</span>
                                 <span class="text-xs text-muted-foreground">/{{ product.unit }}</span>
                             </div>
-                            <button onclick="addToCart({{ product.id|stringformat:"d" }}, '{{ product.name|escapejs }}', {{ product.price|stringformat:"d" }}, '{{ product.image_url|escapejs }}', '{{ product.unit|escapejs }}')" class="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white px-3.5 py-2 rounded-full text-xs font-semibold transition">
-                                <i data-lucide="shopping-cart" class="w-3 h-3"></i> Thêm
-                            </button>
+                            {% if product.available %}
+                                <button onclick="addToCart({{ product.id|stringformat:"d" }}, '{{ product.name|escapejs }}', {{ product.price|stringformat:"d" }}, '{{ product.image_url|escapejs }}', '{{ product.unit|escapejs }}')" class="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white px-3.5 py-2 rounded-full text-xs font-semibold transition shadow-sm">
+                                    <i data-lucide="shopping-cart" class="w-3 h-3"></i> Thêm
+                                </button>
+                            {% else %}
+                                <button disabled class="flex items-center gap-1.5 bg-primary text-white px-3.5 py-2 rounded-full text-xs font-semibold cursor-not-allowed opacity-40 select-none shadow-sm" title="Sản phẩm chưa có sẵn lô hàng đã thu hoạch">
+                                    <i data-lucide="shopping-cart" class="w-3 h-3"></i> Thêm
+                                </button>
+                            {% endif %}
                         </div>
                         {% if product.active_batch %}
                             <div class="border-t border-dashed border-border pt-2 text-[11px] text-muted-foreground flex justify-between">
                                 <span>Lô: <a href="/products/trace/{{ product.active_batch.batch_number }}/" class="text-primary hover:underline font-mono font-semibold" title="Nhấp để truy xuất nguồn gốc Blockchain">{{ product.active_batch.batch_number }}</a></span>
                                 <span>Hạn: {{ product.active_batch.harvest_date|date:"d/m/Y" }}</span>
+                            </div>
+                        {% else %}
+                            <div class="border-t border-dashed border-border pt-2 text-[11px] text-muted-foreground flex justify-between">
+                                <span>Lô: <span class="font-semibold text-slate-400 font-mono">--</span></span>
+                                <span>Hạn: <span class="font-semibold text-slate-400">--/--/----</span></span>
                             </div>
                         {% endif %}
                     </div>

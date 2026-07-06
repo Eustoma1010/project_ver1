@@ -13,6 +13,13 @@ class Category(models.Model):
         return self.name
 
 class Farm(models.Model):
+    STATUS_CHOICES = (
+        ("PENDING_ADMIN", "Chờ Admin duyệt sơ bộ"),
+        ("PENDING_AUDITOR", "Chờ Kiểm định viên duyệt"),
+        ("APPROVED", "Đã duyệt & Cấp chứng chỉ"),
+        ("REJECTED", "Bị từ chối"),
+        ("SUSPENDED", "Bị đình chỉ hoạt động"),
+    )
     name = models.CharField(max_length=200, verbose_name="Tên nhà cung cấp")
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -29,14 +36,50 @@ class Farm(models.Model):
     email = models.EmailField(blank=True, verbose_name="Email liên hệ")
     description = models.TextField(blank=True, verbose_name="Giới thiệu doanh nghiệp")
     approved = models.BooleanField(default=False, verbose_name="Được duyệt")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING_ADMIN",
+        verbose_name="Trạng thái duyệt"
+    )
+    business_license = models.FileField(
+        upload_to="licenses/",
+        null=True,
+        blank=True,
+        verbose_name="Ảnh Giấy phép kinh doanh"
+    )
+    last_audit_date = models.DateField(null=True, blank=True, verbose_name="Ngày kiểm định gần nhất")
+    next_audit_deadline = models.DateField(null=True, blank=True, verbose_name="Hạn kiểm định tiếp theo")
     image_url = models.URLField(max_length=500, blank=True, verbose_name="Link ảnh đại diện")
 
     class Meta:
         verbose_name = "Nhà cung cấp"
         verbose_name_plural = "Nhà cung cấp"
 
+    def save(self, *args, **kwargs):
+        if self.status == "APPROVED":
+            self.approved = True
+        else:
+            self.approved = False
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
+
+class FarmAudit(models.Model):
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name="audits", verbose_name="Nông trại")
+    auditor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name="Kiểm định viên")
+    audit_date = models.DateField(auto_now_add=True, verbose_name="Ngày kiểm định")
+    result = models.BooleanField(verbose_name="Đạt yêu cầu")
+    notes = models.TextField(blank=True, verbose_name="Ý kiến nhận xét/Đánh giá")
+
+    class Meta:
+        verbose_name = "Đánh giá nông trại"
+        verbose_name_plural = "Đánh giá nông trại"
+        ordering = ["-audit_date"]
+
+    def __str__(self):
+        return f"Đánh giá {self.farm.name} - {'Đạt' if self.result else 'Không đạt'}"
 
 class Product(models.Model):
     category = models.ForeignKey(
@@ -77,25 +120,65 @@ class Product(models.Model):
     )
     image_url = models.URLField(max_length=500, blank=True, verbose_name="Link ảnh sản phẩm")
     description = models.TextField(blank=True, verbose_name="Mô tả sản phẩm")
-    available = models.BooleanField(default=True, verbose_name="Còn hàng")
+    available = models.BooleanField(default=False, verbose_name="Còn hàng")
+    STATUS_CHOICES = (
+        ("PENDING_ADMIN", "Chờ Admin duyệt"),
+        ("PENDING_AUDITOR", "Chờ Kiểm định viên duyệt"),
+        ("APPROVED", "Đã duyệt"),
+        ("REJECTED", "Từ chối"),
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING_ADMIN",
+        verbose_name="Trạng thái duyệt"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def active_batch(self):
-        """Lấy lô hàng đã thu hoạch sớm nhất và vẫn còn tồn kho (FIFO)."""
-        return self.batches.filter(status="HARVESTED", remaining_quantity__gt=0).order_by("harvest_date").first()
+        """Lấy lô hàng đã thu hoạch sớm nhất và vẫn còn tồn kho (FIFO), có mốc thu hoạch đã được xác thực."""
+        return self.batches.filter(
+            status="HARVESTED",
+            remaining_quantity__gt=0,
+            milestones__title="Thu hoạch & Đóng gói",
+            milestones__status="VERIFIED"
+        ).order_by("harvest_date").first()
 
     class Meta:
         verbose_name = "Sản phẩm"
         verbose_name_plural = "Sản phẩm"
         ordering = ["-created_at"]
 
+    def update_availability(self):
+        has_active = self.batches.filter(
+            status="HARVESTED",
+            remaining_quantity__gt=0,
+            milestones__title="Thu hoạch & Đóng gói",
+            milestones__status="VERIFIED"
+        ).exists() if self.pk else False
+        is_approved = (self.status == "APPROVED")
+        new_avail = has_active and is_approved
+        if self.available != new_avail:
+            self.available = new_avail
+            Product.objects.filter(pk=self.pk).update(available=new_avail)
+
     def save(self, *args, **kwargs):
         if self.farm:
             self.origin = self.farm.province if self.farm.province else self.farm.region
         else:
             self.origin = "Việt Nam"
+        
+        has_active = self.batches.filter(
+            status="HARVESTED",
+            remaining_quantity__gt=0,
+            milestones__title="Thu hoạch & Đóng gói",
+            milestones__status="VERIFIED"
+        ).exists() if self.pk else False
+        is_approved = (self.status == "APPROVED")
+        self.available = has_active and is_approved
+        
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -129,6 +212,11 @@ class Batch(models.Model):
         verbose_name_plural = "Lô sản phẩm"
         ordering = ["harvest_date", "seeding_date"]
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.product:
+            self.product.update_availability()
+
     def __str__(self):
         return f"Lô {self.batch_number} - {self.product.name} ({self.get_status_display()})"
 
@@ -147,6 +235,36 @@ class BatchMilestone(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian ghi nhận")
     blockchain_tx_hash = models.CharField(max_length=66, blank=True, null=True, verbose_name="TxHash cột mốc")
     parameters = models.JSONField(default=dict, blank=True, verbose_name="Thông số kỹ thuật")
+    
+    status = models.CharField(
+        max_length=20,
+        choices=(
+            ("PENDING_AUDIT", "Chờ kiểm định"),
+            ("VERIFIED", "Đã xác thực"),
+            ("REJECTED", "Bị từ chối")
+        ),
+        default="PENDING_AUDIT",
+        verbose_name="Trạng thái kiểm định"
+    )
+    milestone_type = models.CharField(
+        max_length=10,
+        choices=(
+            ("MANUAL", "Thủ công"),
+            ("IOT", "Tự động (IoT)")
+        ),
+        default="MANUAL",
+        verbose_name="Loại nhật ký"
+    )
+    audit_opinion = models.TextField(blank=True, verbose_name="Ý kiến kiểm định")
+    inspection_id = models.CharField(max_length=100, blank=True, verbose_name="Mã số biên bản kiểm thực")
+    auditor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_milestones",
+        verbose_name="Kiểm định viên"
+    )
 
     class Meta:
         verbose_name = "Nhật ký lô hàng"
@@ -154,7 +272,7 @@ class BatchMilestone(models.Model):
         ordering = ["timestamp"]
 
     def __str__(self):
-        return f"{self.title} - Lô {self.batch.batch_number}"
+        return f"{self.title} - Lô {self.batch.batch_number} ({self.get_status_display()})"
 
 
 class BlogCategory(models.Model):

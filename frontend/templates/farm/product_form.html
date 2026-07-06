@@ -96,28 +96,14 @@
           </div>
         </div>
 
-        <!-- Section 3: Description & Blockchain -->
+        <!-- Section 3: Description -->
         <div class="space-y-4 pt-4 border-t border-dashed border-border">
-          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-primary"></i> Chi tiết &amp; Truy xuất nguồn gốc</h3>
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="file-text" class="w-4 h-4 text-primary"></i> Mô tả sản phẩm</h3>
           <div class="grid grid-cols-2 gap-4">
             <div class="col-span-2">
-              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_description">Mô tả sản phẩm</label>
-              <textarea name="description" id="id_description" rows="3" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">{{ form.description.value|default:'' }}</textarea>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_description">Mô tả chi tiết</label>
+              <textarea name="description" id="id_description" rows="4" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Mô tả chất lượng, cách bảo quản...">{{ form.description.value|default:'' }}</textarea>
               {% for error in form.description.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_batch_number">Số lô hàng (Batch #)</label>
-              <input type="text" name="batch_number" id="id_batch_number" value="{{ form.batch_number.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="VD: BATCH-2026-A1">
-              {% for error in form.batch_number.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_harvest_date">Ngày thu hoạch</label>
-              <input type="date" name="harvest_date" id="id_harvest_date" value="{{ form.harvest_date.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
-              {% for error in form.harvest_date.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
-            </div>
-            <div class="col-span-2 flex items-center gap-2 pt-2">
-              <input type="checkbox" name="available" id="id_available" {% if form.available.value != False %}checked{% endif %} class="text-primary focus:ring-primary rounded border-border">
-              <label class="text-xs font-semibold text-foreground/80 cursor-pointer" for="id_available">Sản phẩm này còn hàng và sẵn sàng giao dịch</label>
             </div>
           </div>
         </div>
@@ -188,8 +174,6 @@
     const badgeInput = document.getElementById('id_badge');
     const urlInput = document.getElementById('id_image_url');
     const fileInput = document.getElementById('id_image_file');
-    const batchInput = document.getElementById('id_batch_number');
-    const dateInput = document.getElementById('id_harvest_date');
 
     // Toggle Image Input Mode Logic
     const btnUploadMode = document.getElementById('btn-upload-mode');
@@ -280,22 +264,6 @@
       updateImage(urlInput.value);
     }
     
-    function syncTraceability() {
-      const traceBox = document.querySelector('.preview-trace-box');
-      const batchVal = batchInput ? batchInput.value : '';
-      const dateVal = dateInput ? dateInput.value : '';
-      if (batchVal || dateVal) {
-        updateText('.preview-batch', batchVal, 'N/A');
-        updateText('.preview-date', dateVal ? formatDate(dateVal) : 'N/A', 'N/A');
-        traceBox.classList.remove('hidden');
-      } else {
-        traceBox.classList.add('hidden');
-      }
-    }
-
-    if (batchInput || dateInput) {
-      syncTraceability();
-    }
 
     // Event Listeners
     nameInput.addEventListener('input', (e) => {
@@ -332,17 +300,6 @@
       }
     });
 
-    if (batchInput) batchInput.addEventListener('input', syncTraceability);
-    if (dateInput) dateInput.addEventListener('change', syncTraceability);
-
-    function formatDate(dateStr) {
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return dateStr;
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
   });
 </script>
 {% endblock %}

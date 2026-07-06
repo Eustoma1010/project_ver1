@@ -5,6 +5,7 @@ class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ("BUYER", "Người mua"),
         ("FARMER", "Nông dân / Nhà sản xuất"),
+        ("AUDITOR", "Kiểm định viên / Auditor"),
         ("ADMIN", "Quản trị viên"),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="BUYER")

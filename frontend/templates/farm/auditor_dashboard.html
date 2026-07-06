@@ -1,0 +1,943 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Kênh Kiểm Định Viên - Verdant{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto mt-12 px-4 sm:px-6 mb-16 space-y-8">
+  <!-- Header Row -->
+  <div class="border-b border-border pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <span class="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Kiểm định viên / Auditor (Bên thứ ba)
+      </span>
+      <h2 class="text-3xl font-bold font-display text-foreground mt-3">Cổng Thông Tin Kiểm Định</h2>
+      <p class="text-sm text-muted-foreground mt-1">Quản lý và thẩm định nông trại, xác thực cột mốc nông nghiệp độc lập lên Blockchain Ethereum.</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+        <div class="p-4 rounded-xl text-sm font-medium {% if 'success' in message.tags %}bg-green-50 text-green-800 border border-green-200{% else %}bg-amber-50 text-amber-800 border border-amber-200{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Section: Main Dashboard Tabs/Grids -->
+  <div class="grid lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Left Column: Tasks & Audits -->
+    <div class="lg:col-span-8 space-y-8">
+      
+      <!-- 1. Pending Farm Approvals (Stage 2) -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-border pb-3 flex justify-between items-center">
+          <h3 class="text-lg font-bold font-display text-foreground flex items-center gap-2">
+            <i data-lucide="clipboard-check" class="w-5 h-5 text-blue-600"></i> Thẩm định Nông trại Mới
+          </h3>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">{{ pending_farms.count }} yêu cầu</span>
+        </div>
+
+        {% if pending_farms %}
+          <!-- Filter Bar for Pending Farms -->
+          <div class="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 mb-4 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-1 text-muted-foreground font-medium">
+                <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-400"></i> Lọc:
+              </div>
+              
+              <!-- Filter by Farm Name -->
+              <select id="filterFarmName" onchange="applyFarmFilters()" class="text-[11px] border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600/30 max-w-[180px]">
+                <option value="">Tất cả nông trại</option>
+              </select>
+
+              <!-- Filter by Region -->
+              <select id="filterFarmRegion" onchange="applyFarmFilters()" class="text-[11px] border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600/30 max-w-[150px]">
+                <option value="">Tất cả vùng miền</option>
+              </select>
+            </div>
+            
+            <div class="text-xs text-muted-foreground font-medium">
+              Hiện: <span id="visibleFarmCount" class="font-bold text-slate-800">{{ pending_farms.count }}</span> yêu cầu
+            </div>
+          </div>
+
+          <div class="divide-y divide-border">
+            {% for farm in pending_farms %}
+              <div class="farm-card-item py-5 flex flex-col md:flex-row md:items-start md:justify-between gap-6" data-name="{{ farm.name }}" data-region="{{ farm.region }}">
+                <div class="space-y-3 flex-1">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-foreground text-base">{{ farm.name }}</span>
+                      <span class="text-xs px-2.5 py-0.5 rounded-full bg-secondary text-primary font-bold">{{ farm.region }}</span>
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-1">Đăng ký bởi: <span class="font-semibold">{{ farm.owner.username }}</span></p>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground bg-[#F8FBF8] p-4 rounded-xl border border-border/40">
+                    <div><strong>Mã số thuế:</strong> {{ farm.tax_code }}</div>
+                    <div><strong>Hotline:</strong> {{ farm.phone }}</div>
+                    <div><strong>Email:</strong> {{ farm.email }}</div>
+                    <div><strong>Tỉnh thành:</strong> {{ farm.province }}</div>
+                    {% if farm.business_license %}
+                    <div class="col-span-2 pt-1.5 border-t border-border/40 flex items-center justify-between">
+                      <span class="font-semibold text-foreground/80 flex items-center gap-1"><i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-500"></i> Giấy phép kinh doanh:</span>
+                      <a href="{{ farm.business_license.url }}" target="_blank" class="text-primary font-bold hover:underline flex items-center gap-0.5"><i data-lucide="external-link" class="w-3 h-3"></i> Xem tài liệu</a>
+                    </div>
+                    {% endif %}
+                  </div>
+                  
+                  {% if farm.description %}
+                    <p class="text-xs text-foreground/75 bg-muted/20 p-3 rounded-xl border border-border/30 italic">"{{ farm.description }}"</p>
+                  {% endif %}
+                </div>
+
+                <!-- Approval actions -->
+                <div class="flex md:flex-col gap-2 shrink-0 md:w-36 justify-end pt-1">
+                  <form method="post" class="flex gap-2 w-full">
+                    {% csrf_token %}
+                    <input type="hidden" name="farm_id" value="{{ farm.id|stringformat:"d" }}">
+                    <button type="submit" name="action" value="approve_farm" class="flex-1 bg-[#007A36] hover:bg-[#00632b] text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition text-center shadow-sm">
+                      Duyệt & Cấp Cert
+                    </button>
+                    <button type="submit" name="action" value="reject_farm" onclick="return confirm('Bạn có chắc chắn từ chối hồ sơ này?')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2.5 px-3 rounded-xl transition text-center">
+                      Từ chối
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="py-10 text-center text-muted-foreground text-sm space-y-2">
+            <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto">
+              <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <p class="font-bold text-foreground">Không có nông trại nào chờ thẩm định</p>
+            <p class="text-xs text-muted-foreground max-w-xs mx-auto">Tất cả các hồ sơ đăng ký đối tác mới đã được giải quyết hoặc chưa hoàn thiện bước 1.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- 2. Thẩm định sản phẩm mới -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-border pb-3 flex justify-between items-center">
+          <h3 class="text-lg font-bold font-display text-foreground flex items-center gap-2">
+            <i data-lucide="package" class="w-5 h-5 text-indigo-600"></i> Thẩm định sản phẩm mới
+          </h3>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200">{{ pending_products|length }} yêu cầu</span>
+        </div>
+
+        {% if pending_products %}
+          <!-- Filter Bar for Pending Products -->
+          <div class="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 mb-4 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-1 text-muted-foreground font-medium">
+                <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-400"></i> Lọc:
+              </div>
+              
+              <!-- Filter by Farm -->
+              <select id="filterProductFarm" onchange="handleProductFarmChange()" class="text-[11px] border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#007A36]/30 max-w-[150px]">
+                <option value="">Tất cả nhà cung cấp</option>
+              </select>
+
+              <!-- Filter by Category -->
+              <select id="filterProductCategory" onchange="applyProductFilters()" class="text-[11px] border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#007A36]/30 max-w-[120px]">
+                <option value="">Tất cả danh mục</option>
+              </select>
+            </div>
+            
+            <div class="flex items-center gap-2.5">
+              <span class="text-muted-foreground">Hiện: <strong id="visibleProductCount" class="text-slate-800">{{ pending_products|length }}</strong></span>
+              
+              <!-- Bulk Approve Products -->
+              <form id="bulkApproveProductsForm" method="post" onsubmit="prepareBulkApproveProducts(event)" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve_all_products">
+                <input type="hidden" name="product_ids" id="bulkProductIds" value="">
+                <button type="submit" class="bg-[#007A36] hover:bg-[#00632b] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-sm">
+                  <i data-lucide="check-check" class="w-3 h-3"></i> Duyệt Tất Cả <span id="btnVisibleProductCount">({{ pending_products|length }})</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="divide-y divide-border">
+            {% for prod in pending_products %}
+              <div class="product-card-item py-6 flex flex-col md:flex-row gap-5" data-id="{{ prod.id|stringformat:"d" }}" data-farm="{{ prod.farm.name }}" data-category="{{ prod.category.name }}">
+                <!-- Product Image -->
+                <div class="w-full md:w-28 h-28 shrink-0 bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden relative shadow-3xs">
+                  {% if prod.image_url %}
+                    <img src="{{ prod.image_url }}" class="w-full h-full object-cover" alt="{{ prod.name }}">
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                      <i data-lucide="image" class="w-8 h-8"></i>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Product Specifications -->
+                <div class="flex-grow space-y-3">
+                  <div class="space-y-1">
+                    <span class="text-[9px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200/80">
+                      SLUG: {{ prod.slug }}
+                    </span>
+                    <h4 class="font-bold text-slate-900 text-base font-display mt-1">{{ prod.name }}</h4>
+                  </div>
+
+                  <!-- Details Grid -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-muted-foreground bg-slate-50/50 p-4 rounded-xl border border-slate-100/60">
+                    <div class="space-y-1">
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/40 pb-0.5 mb-1">Thông tin cơ bản</span>
+                      <div>Danh mục: <strong class="text-slate-700">{{ prod.category.name }}</strong></div>
+                      <div>Giá dự kiến: <strong class="text-primary">{{ prod.price|intcomma }}đ</strong> / {{ prod.unit }}</div>
+                    </div>
+                    
+                    <div class="space-y-1">
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/40 pb-0.5 mb-1">Nguồn gốc</span>
+                      <div>Nông trại: <strong class="text-slate-700">{{ prod.farm.name }}</strong></div>
+                      <div>Xuất xứ: <span class="font-semibold text-slate-600">{{ prod.origin }}</span></div>
+                    </div>
+
+                    <div class="space-y-1">
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/40 pb-0.5 mb-1">Thời gian đăng ký</span>
+                      <div>Đại diện: <span class="font-semibold text-slate-600">{{ prod.farm.owner.username }}</span></div>
+                      <div>Ngày gửi: <span class="font-semibold text-slate-600">{{ prod.created_at|date:"d/m/Y H:i" }}</span></div>
+                    </div>
+                  </div>
+
+                  <!-- Description -->
+                  {% if prod.description %}
+                    <div class="bg-slate-50 border border-slate-100 p-3 rounded-xl text-xs">
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mô tả sản phẩm:</span>
+                      <p class="text-slate-700 italic">"{{ prod.description }}"</p>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- Approval Actions -->
+                <div class="flex md:flex-col gap-2 shrink-0 md:w-32 justify-center">
+                  <form method="post" class="flex md:flex-col gap-2 w-full">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ prod.id|stringformat:"d" }}">
+                    <button type="submit" name="action" value="approve_product" class="w-full bg-[#007A36] hover:bg-[#00632b] text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                      <i data-lucide="check" class="w-3.5 h-3.5"></i> Phê duyệt
+                    </button>
+                    <button type="submit" name="action" value="reject_product" onclick="return confirm('Bạn có chắc chắn từ chối sản phẩm này?')" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2.5 px-3 rounded-xl transition text-center flex items-center justify-center gap-1">
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i> Từ chối
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="py-10 text-center text-muted-foreground text-sm space-y-2">
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto">
+              <i data-lucide="check" class="w-6 h-6"></i>
+            </div>
+            <p class="font-bold text-foreground">Không có sản phẩm nào cần thẩm định</p>
+            <p class="text-xs text-muted-foreground">Tất cả sản phẩm của nông dân đã được duyệt lưu hành.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- 2. Pending Milestone Cross-Verification -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-border pb-3 flex justify-between items-center">
+          <h3 class="text-lg font-bold font-display text-foreground flex items-center gap-2">
+            <i data-lucide="git-commit" class="w-5 h-5 text-[#F5A300]"></i> Xác Thực Nhật Ký Sản Xuất
+          </h3>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200">{{ pending_milestones.count }} cột mốc chờ</span>
+        </div>
+
+        {% if pending_milestones %}
+          <!-- Filter and Bulk Action Bar -->
+          <div class="bg-slate-50 border border-slate-100 p-2.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 mb-4 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-1 text-muted-foreground font-medium">
+                <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-400"></i> Lọc:
+              </div>
+              
+              <!-- Filter by Supplier -->
+              <select id="filterSupplier" onchange="handleSupplierChange()" class="text-[11px] border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#007A36]/30 max-w-[150px]">
+                <option value="">Tất cả nhà cung cấp</option>
+              </select>
+
+              <!-- Filter by Product -->
+              <select id="filterProduct" onchange="applyMilestoneFilters()" class="text-[11px] border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#007A36]/30 max-w-[120px]">
+                <option value="">Tất cả sản phẩm</option>
+              </select>
+            </div>
+
+            <!-- Bulk Approval Form -->
+            <form id="bulkApproveForm" method="post" onsubmit="prepareBulkApprove(event)" class="inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="approve_all_milestones">
+              <input type="hidden" name="milestone_ids" id="bulkMilestoneIds" value="">
+              <button type="submit" class="bg-[#007A36] hover:bg-[#00632b] text-white text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-sm">
+                <i data-lucide="check-check" class="w-3.5 h-3.5"></i> Duyệt Tất Cả <span id="visibleMilestoneCount">({{ pending_milestones.count }})</span>
+              </button>
+            </form>
+          </div>
+
+          <div class="divide-y divide-border">
+            {% for ms in pending_milestones %}
+              <div class="milestone-card py-6 space-y-4" data-id="{{ ms.id|stringformat:"d" }}" data-supplier="{{ ms.batch.product.farm.name }}" data-product="{{ ms.batch.product.name }}">
+                <!-- Header: Milestone title and action buttons -->
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 pb-3">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-[9px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
+                        LÔ: {{ ms.batch.batch_number }}
+                      </span>
+                      {% if ms.milestone_type == 'IOT' %}
+                        <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> IoT (Tự động)
+                        </span>
+                      {% else %}
+                        <span class="text-[9px] bg-slate-50 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full font-semibold">
+                          Thủ công
+                        </span>
+                      {% endif %}
+                      {% if ms.title == "Thu hoạch & Đóng gói" %}
+                        <span class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
+                          Mốc thu hoạch
+                        </span>
+                      {% endif %}
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-[15px] font-display mt-1">
+                      {{ ms.title }}
+                    </h4>
+                  </div>
+                  
+                  <!-- Actions -->
+                  <div class="flex gap-2 shrink-0">
+                    <button onclick="openVerificationModal('{{ ms.id|stringformat:"d" }}', '{{ ms.title|escapejs }}', '{{ ms.batch.batch_number|escapejs }}')" class="bg-primary hover:bg-primary-hover text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-sm">
+                      <i data-lucide="check" class="w-3.5 h-3.5"></i> Duyệt lên Blockchain
+                    </button>
+                    <button onclick="openRejectionModal('{{ ms.id|stringformat:"d" }}', '{{ ms.title|escapejs }}', '{{ ms.batch.batch_number|escapejs }}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i> Từ chối
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Three-Column Grid Details -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-[11px] text-muted-foreground bg-slate-50/50 p-4 rounded-xl border border-slate-100/80">
+                  <!-- Col 1: Sản phẩm & Lô hàng -->
+                  <div class="space-y-1">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/40 pb-0.5 mb-1.5">Sản phẩm & Lô hàng</span>
+                    <div>Sản phẩm: <strong class="text-slate-700">{{ ms.batch.product.name }}</strong></div>
+                    <div>Mã Lô: <span class="font-semibold font-mono text-slate-600">{{ ms.batch.batch_number }}</span></div>
+                    <div>Số lượng gieo: <span class="font-semibold text-slate-600">{{ ms.batch.initial_quantity }} {{ ms.batch.product.unit }}</span></div>
+                    <div>Ngày gieo hạt: <span class="font-semibold text-slate-600">{{ ms.batch.seeding_date|date:"d/m/Y" }}</span></div>
+                  </div>
+
+                  <!-- Col 2: Nông trại & Vùng canh tác -->
+                  <div class="space-y-1">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/40 pb-0.5 mb-1.5">Nông trại & Canh tác</span>
+                    <div>Nông trại: <strong class="text-slate-700">{{ ms.batch.product.farm.name }}</strong></div>
+                    <div>Đại diện: <span class="font-semibold text-slate-600">{{ ms.batch.product.farm.owner.username }}</span></div>
+                    <div>Tỉnh thành: <span class="font-semibold text-slate-600">{{ ms.batch.product.farm.province|default:"N/A" }}</span></div>
+                    <div>Vùng: <span class="font-semibold text-slate-600">{{ ms.batch.product.farm.region|default:"N/A" }}</span></div>
+                  </div>
+
+                  <!-- Col 3: Cột mốc nhật ký -->
+                  <div class="space-y-1">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/40 pb-0.5 mb-1.5">Thông tin khai báo</span>
+                    <div>Địa điểm ghi: <span class="font-semibold text-slate-600">{{ ms.location }}</span></div>
+                    <div>Người ghi: <span class="font-semibold text-slate-600">{{ ms.actor }}</span></div>
+                    <div>Thời gian: <span class="font-semibold text-slate-600">{{ ms.timestamp|date:"d/m/Y H:i:s" }}</span></div>
+                    <div>Trạng thái: <span class="text-amber-600 font-semibold bg-amber-50 border border-amber-200 px-1 py-0.2 rounded text-[9px]">Đang thẩm định</span></div>
+                  </div>
+                </div>
+
+                <!-- Parameters display (with beautiful Lucide icons) -->
+                {% if ms.parameters %}
+                  <div class="bg-[#FAFBF9]/80 border border-emerald-100/50 p-4 rounded-xl">
+                    <span class="text-[9px] font-bold text-emerald-800/80 uppercase tracking-wider block mb-2">Thông số kỹ thuật khai báo:</span>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                      {% for k, v in ms.parameters.items %}
+                        <span class="bg-white text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200/70 flex items-center gap-1.5 shadow-3xs">
+                          {% if k == 'storage_temp' %}
+                            <i data-lucide="thermometer" class="w-4 h-4 text-rose-500"></i>
+                            <span class="text-slate-500">Nhiệt độ bảo quản:</span>
+                            <strong class="text-slate-800">{{ v }}°C</strong>
+                          {% elif k == 'roast_temp' %}
+                            <i data-lucide="flame" class="w-4 h-4 text-amber-500"></i>
+                            <span class="text-slate-500">Nhiệt độ sấy/rang:</span>
+                            <strong class="text-slate-800">{{ v }}°C</strong>
+                          {% elif k == 'soil_temp' %}
+                            <i data-lucide="thermometer" class="w-4 h-4 text-orange-500"></i>
+                            <span class="text-slate-500">Nhiệt độ đất:</span>
+                            <strong class="text-slate-800">{{ v }}°C</strong>
+                          {% elif k == 'ph_level' %}
+                            <i data-lucide="droplets" class="w-4 h-4 text-blue-500"></i>
+                            <span class="text-slate-500">Độ pH:</span>
+                            <strong class="text-slate-800">{{ v }}</strong>
+                          {% elif k == 'fat_content' %}
+                            <i data-lucide="percent" class="w-4 h-4 text-yellow-600"></i>
+                            <span class="text-slate-500">Hàm lượng béo:</span>
+                            <strong class="text-slate-800">{{ v }}%</strong>
+                          {% elif k == 'bacteria_count' %}
+                            <i data-lucide="activity" class="w-4 h-4 text-purple-500"></i>
+                            <span class="text-slate-500">Tỷ lệ vi sinh:</span>
+                            <strong class="text-slate-800">{{ v }}%</strong>
+                          {% elif k == 'moisture' %}
+                            <i data-lucide="droplet" class="w-4 h-4 text-cyan-500"></i>
+                            <span class="text-slate-500">Độ ẩm hạt:</span>
+                            <strong class="text-slate-800">{{ v }}%</strong>
+                          {% elif k == 'soil_moisture' %}
+                            <i data-lucide="waves" class="w-4 h-4 text-sky-500"></i>
+                            <span class="text-slate-500">Độ ẩm đất:</span>
+                            <strong class="text-slate-800">{{ v }}%</strong>
+                          {% elif k == 'altitude' %}
+                            <i data-lucide="mountain" class="w-4 h-4 text-emerald-600"></i>
+                            <span class="text-slate-500">Độ cao canh tác:</span>
+                            <strong class="text-slate-800">{{ v }}m</strong>
+                          {% elif k == 'roast_note' %}
+                            <i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i>
+                            <span class="text-slate-500">Ghi chú sấy/rang:</span>
+                            <strong class="text-slate-800">{{ v }}</strong>
+                          {% elif k == 'fertilizer' %}
+                            <i data-lucide="sprout" class="w-4 h-4 text-green-600"></i>
+                            <span class="text-slate-500">Phân bón:</span>
+                            <strong class="text-slate-800">{{ v }}</strong>
+                          {% elif k == 'harvest_date' %}
+                            <i data-lucide="calendar" class="w-4 h-4 text-teal-600"></i>
+                            <span class="text-slate-500">Ngày thu hoạch:</span>
+                            <strong class="text-slate-800">{{ v }}</strong>
+                          {% else %}
+                            <span class="text-slate-500">{{ k }}:</span>
+                            <strong class="text-slate-800">{{ v }}</strong>
+                          {% endif %}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+
+                <!-- Description / Technical Note -->
+                <div class="bg-slate-50/80 border border-slate-100 p-4 rounded-xl text-xs">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mô tả nhật ký hoạt động:</span>
+                  <p class="text-slate-700 leading-relaxed italic">"{{ ms.description }}"</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="py-10 text-center text-muted-foreground text-sm space-y-2">
+            <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto">
+              <i data-lucide="activity" class="w-6 h-6"></i>
+            </div>
+            <p class="font-bold text-foreground">Không có cột mốc nào chờ duyệt</p>
+            <p class="text-xs text-muted-foreground">Mọi ghi nhận nhật ký của nông dân đã được đối chiếu hoặc chưa tạo mới.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right Column: Audit Active Farms & History -->
+    <div class="lg:col-span-4 space-y-8">
+      
+      <!-- 1. Audit Check Active Farms -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-border pb-3">
+          <h3 class="text-base font-bold font-display text-foreground flex items-center gap-2">
+            <i data-lucide="eye" class="w-5 h-5 text-primary"></i> Đánh Giá Định Kỳ / Đột Xuất
+          </h3>
+          <p class="text-xs text-muted-foreground mt-0.5">Giám sát và kiểm định định kỳ các trang trại.</p>
+        </div>
+
+        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+          {% for ap in active_farms %}
+            <div class="p-3.5 bg-muted/20 border border-border/60 rounded-2xl hover:bg-muted/40 transition space-y-3.5">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="font-bold text-sm text-foreground truncate leading-tight font-display">{{ ap.name }}</p>
+                  <p class="text-[10px] text-muted-foreground mt-1">Đại diện: {{ ap.owner.username }}</p>
+                </div>
+                {% if ap.status == "APPROVED" %}
+                  <span class="text-[8px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-100 shrink-0">Certified</span>
+                {% else %}
+                  <span class="text-[8px] px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold border border-amber-100 shrink-0">Suspended</span>
+                {% endif %}
+              </div>
+              
+              <div class="text-[10px] text-muted-foreground grid grid-cols-2 gap-1 border-t border-dashed border-border/60 pt-2">
+                <div>Kiểm gần nhất: <strong>{{ ap.last_audit_date|date:"d/m/y"|default:"Chưa có" }}</strong></div>
+                <div>Hạn kiểm tới: <strong>{{ ap.next_audit_deadline|date:"d/m/y"|default:"Chưa có" }}</strong></div>
+              </div>
+              
+              <button onclick="openAuditModal('{{ ap.id|stringformat:"d" }}', '{{ ap.name|escapejs }}')" class="w-full bg-secondary hover:bg-primary hover:text-white text-primary text-[10px] font-bold py-2 rounded-xl transition flex items-center justify-center gap-1 shadow-sm">
+                <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Thực hiện đánh giá
+              </button>
+            </div>
+          {% empty %}
+            <p class="text-xs text-muted-foreground italic text-center py-6">Chưa có nhà cung cấp nào hoạt động.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 2. Recent Audit History -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-border pb-3">
+          <h3 class="text-base font-bold font-display text-foreground flex items-center gap-2">
+            <i data-lucide="history" class="w-5 h-5 text-primary"></i> Lịch Sử Đánh Giá
+          </h3>
+          <p class="text-xs text-muted-foreground mt-0.5">Hồ sơ 15 lần kiểm định chất lượng gần nhất.</p>
+        </div>
+
+        <div class="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+          {% for audit in recent_audits %}
+            <div class="p-3 border border-border/60 rounded-xl space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <strong class="text-foreground truncate">{{ audit.farm.name }}</strong>
+                {% if audit.result %}
+                  <span class="text-[8px] font-bold bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 rounded">Đạt</span>
+                {% else %}
+                  <span class="text-[8px] font-bold bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded">Trượt</span>
+                {% endif %}
+              </div>
+              <p class="text-[10px] text-muted-foreground">{{ audit.audit_date|date:"d/m/Y" }} | Bởi: {{ audit.auditor.username }}</p>
+              {% if audit.notes %}
+                <p class="text-[10px] text-foreground/80 bg-muted/30 p-2 rounded border border-border/30 italic">"{{ audit.notes }}"</p>
+              {% endif %}
+            </div>
+          {% empty %}
+            <p class="text-xs text-muted-foreground italic text-center py-6">Chưa có lịch sử kiểm định.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal 1: Verify Milestone Form -->
+<div id="verifyMilestoneModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-[28px] max-w-md w-full p-6 border border-border shadow-2xl relative space-y-4 mx-4">
+    <div class="flex justify-between items-start border-b border-border pb-3">
+      <div>
+        <h3 class="text-base font-bold font-display text-foreground">Xác Thực Ghi Nhận Lên Sổ Cái</h3>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Xác thực mốc canh tác và đồng bộ vĩnh viễn lên Blockchain.</p>
+      </div>
+      <button onclick="closeModal('verifyMilestoneModal')" class="text-muted-foreground hover:text-foreground transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    
+    <div class="bg-muted/30 p-3.5 rounded-xl border border-border/50 text-xs">
+      <p>Cột mốc: <strong id="verifyMsTitle" class="text-foreground">--</strong></p>
+      <p class="mt-1">Mã số lô: <strong id="verifyMsBatch" class="text-foreground">--</strong></p>
+    </div>
+
+    <form method="post" class="space-y-4 text-xs">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="verify_milestone">
+      <input type="hidden" name="milestone_id" id="verifyMsId">
+      
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-foreground">Mã số biên bản kiểm thực *</label>
+        <input type="text" name="inspection_id" required placeholder="Ví dụ: INSP-2026-0089" class="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+      </div>
+      
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-foreground">Ý kiến kiểm định viên</label>
+        <textarea name="audit_opinion" rows="3" placeholder="Đánh giá chất lượng thực tế, thông số đạt chuẩn..." class="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-[#007A36] hover:bg-[#00632b] text-white font-semibold py-2.5 rounded-full transition shadow-md">Xác thực & Đẩy Blockchain</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 2: Reject Milestone Form -->
+<div id="rejectMilestoneModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-[28px] max-w-md w-full p-6 border border-border shadow-2xl relative space-y-4 mx-4">
+    <div class="flex justify-between items-start border-b border-border pb-3">
+      <div>
+        <h3 class="text-base font-bold font-display text-red-600">Từ Chối Xác Thực Cột Mốc</h3>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Không phê duyệt và trả lại hồ sơ mốc nhật ký này.</p>
+      </div>
+      <button onclick="closeModal('rejectMilestoneModal')" class="text-muted-foreground hover:text-foreground transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    
+    <div class="bg-red-50/30 p-3.5 rounded-xl border border-red-200/50 text-xs">
+      <p>Cột mốc: <strong id="rejectMsTitle" class="text-foreground">--</strong></p>
+      <p class="mt-1">Mã số lô: <strong id="rejectMsBatch" class="text-foreground">--</strong></p>
+    </div>
+
+    <form method="post" class="space-y-4 text-xs">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reject_milestone">
+      <input type="hidden" name="milestone_id" id="rejectMsId">
+      
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-foreground">Mã số biên bản kiểm thực *</label>
+        <input type="text" name="inspection_id" required placeholder="Ví dụ: REJ-2026-0012" class="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+      </div>
+      
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-foreground">Lý do từ chối *</label>
+        <textarea name="audit_opinion" required rows="3" placeholder="Ghi rõ lý do không đạt chuẩn kỹ thuật canh tác, thông số sai lệch..." class="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-full transition shadow-md">Gửi Từ Chối</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 3: Perform Audit Check Form -->
+<div id="auditFarmModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-[28px] max-w-md w-full p-6 border border-border shadow-2xl relative space-y-4 mx-4">
+    <div class="flex justify-between items-start border-b border-border pb-3">
+      <div>
+        <h3 class="text-base font-bold font-display text-foreground">Đánh Giá Chất Lượng Nông Trại</h3>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Thực hiện đợt kiểm tra và cập nhật trạng thái hoạt động chính thức.</p>
+      </div>
+      <button onclick="closeModal('auditFarmModal')" class="text-muted-foreground hover:text-foreground transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    
+    <div class="bg-muted/30 p-3.5 rounded-xl border border-border/50 text-xs">
+      <p>Nông trại: <strong id="auditFarmName" class="text-foreground">--</strong></p>
+    </div>
+
+    <form method="post" class="space-y-4 text-xs">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="audit_farm">
+      <input type="hidden" name="farm_id" id="auditFarmId">
+      
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-foreground">Kết quả đánh giá *</label>
+        <select name="result" required class="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+          <option value="pass">ĐẠT YÊU CẦU - Giữ nguyên chứng nhận</option>
+          <option value="fail">KHÔNG ĐẠT - Đình chỉ hoạt động</option>
+        </select>
+      </div>
+      
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-foreground">Ý kiến nhận xét/Đánh giá chi tiết *</label>
+        <textarea name="notes" required rows="3" placeholder="Ghi nhận biên bản thực tế kiểm tra hiện trường..." class="w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
+      </div>
+
+      <button type="submit" class="w-full bg-[#007A36] hover:bg-[#00632b] text-white font-semibold py-2.5 rounded-full transition shadow-md">Lưu biên bản đánh giá</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openAuditModal(id, name) {
+      document.getElementById('auditFarmId').value = id;
+      document.getElementById('auditFarmName').innerText = name;
+      document.getElementById('auditFarmModal').classList.remove('hidden');
+  }
+
+  function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+  }
+
+  let allProducts = [];
+  let allMilestones = [];
+  let allFarms = [];
+
+  document.addEventListener('DOMContentLoaded', function() {
+      // 1. Parse all products from DOM
+      document.querySelectorAll('.product-card-item').forEach(card => {
+          allProducts.push({
+              id: card.getAttribute('data-id'),
+              farm: card.getAttribute('data-farm'),
+              category: card.getAttribute('data-category')
+          });
+      });
+
+      // Populate Product Farm dropdown
+      populateProductFarmDropdown();
+      // Populate Product Category dropdown
+      populateProductCategoryDropdown();
+
+      // 2. Parse all milestones from DOM
+      document.querySelectorAll('.milestone-card').forEach(card => {
+          allMilestones.push({
+              id: card.getAttribute('data-id'),
+              supplier: card.getAttribute('data-supplier'),
+              product: card.getAttribute('data-product')
+          });
+      });
+
+      // Populate Milestone Supplier dropdown
+      populateSupplierDropdown();
+      // Populate Milestone Product dropdown
+      populateProductDropdown();
+
+      // 3. Parse all pending farms from DOM
+      document.querySelectorAll('.farm-card-item').forEach(card => {
+          allFarms.push({
+              name: card.getAttribute('data-name'),
+              region: card.getAttribute('data-region')
+          });
+      });
+
+      // Populate Farm Name filter
+      populateFarmNameDropdown();
+      // Populate Farm Region filter
+      populateFarmRegionDropdown();
+  });
+
+  // --- Farm Filter Functions ---
+  function populateFarmNameDropdown() {
+      const nameSelect = document.getElementById('filterFarmName');
+      if (!nameSelect) return;
+      const names = new Set(allFarms.map(f => f.name));
+      names.forEach(name => {
+          if (name) {
+              const opt = document.createElement('option');
+              opt.value = name;
+              opt.textContent = name;
+              nameSelect.appendChild(opt);
+          }
+      });
+  }
+
+  function populateFarmRegionDropdown() {
+      const regionSelect = document.getElementById('filterFarmRegion');
+      if (!regionSelect) return;
+      const regions = new Set(allFarms.map(f => f.region));
+      regions.forEach(region => {
+          if (region) {
+              const opt = document.createElement('option');
+              opt.value = region;
+              opt.textContent = region;
+              regionSelect.appendChild(opt);
+          }
+      });
+  }
+
+  function applyFarmFilters() {
+      const selectedName = document.getElementById('filterFarmName').value;
+      const selectedRegion = document.getElementById('filterFarmRegion').value;
+      
+      const cards = document.querySelectorAll('.farm-card-item');
+      let visibleCount = 0;
+      
+      cards.forEach(card => {
+          const name = card.getAttribute('data-name');
+          const region = card.getAttribute('data-region');
+          
+          const matchName = !selectedName || name === selectedName;
+          const matchRegion = !selectedRegion || region === selectedRegion;
+          
+          if (matchName && matchRegion) {
+              card.classList.remove('hidden');
+              visibleCount++;
+          } else {
+              card.classList.add('hidden');
+          }
+      });
+      
+      document.getElementById('visibleFarmCount').textContent = visibleCount;
+  }
+
+  // --- Product Filter Functions ---
+  function populateProductFarmDropdown() {
+      const farmSelect = document.getElementById('filterProductFarm');
+      if (!farmSelect) return;
+      
+      const farms = new Set(allProducts.map(p => p.farm));
+      farms.forEach(farm => {
+          if (farm) {
+              const opt = document.createElement('option');
+              opt.value = farm;
+              opt.textContent = farm;
+              farmSelect.appendChild(opt);
+          }
+      });
+  }
+
+  function populateProductCategoryDropdown(selectedFarm = '') {
+      const categorySelect = document.getElementById('filterProductCategory');
+      if (!categorySelect) return;
+      
+      const currentVal = categorySelect.value;
+      categorySelect.innerHTML = '<option value="">Tất cả danh mục</option>';
+      
+      const filteredProducts = selectedFarm 
+          ? allProducts.filter(p => p.farm === selectedFarm) 
+          : allProducts;
+          
+      const categories = new Set(filteredProducts.map(p => p.category));
+      
+      categories.forEach(cat => {
+          if (cat) {
+              const opt = document.createElement('option');
+              opt.value = cat;
+              opt.textContent = cat;
+              categorySelect.appendChild(opt);
+          }
+      });
+      
+      if (Array.from(categorySelect.options).some(opt => opt.value === currentVal)) {
+          categorySelect.value = currentVal;
+      }
+  }
+
+  function handleProductFarmChange() {
+      const farmSelect = document.getElementById('filterProductFarm');
+      const selectedFarm = farmSelect.value;
+      
+      populateProductCategoryDropdown(selectedFarm);
+      applyProductFilters();
+  }
+
+  function applyProductFilters() {
+      const selectedFarm = document.getElementById('filterProductFarm').value;
+      const selectedCategory = document.getElementById('filterProductCategory').value;
+      
+      const cards = document.querySelectorAll('.product-card-item');
+      let visibleCount = 0;
+      
+      cards.forEach(card => {
+          const farm = card.getAttribute('data-farm');
+          const category = card.getAttribute('data-category');
+          
+          const matchFarm = !selectedFarm || farm === selectedFarm;
+          const matchCategory = !selectedCategory || category === selectedCategory;
+          
+          if (matchFarm && matchCategory) {
+              card.classList.remove('hidden');
+              visibleCount++;
+          } else {
+              card.classList.add('hidden');
+          }
+      });
+      
+      document.getElementById('visibleProductCount').textContent = visibleCount;
+      const btnCount = document.getElementById('btnVisibleProductCount');
+      if (btnCount) {
+          btnCount.textContent = `(${visibleCount})`;
+      }
+  }
+
+  function prepareBulkApproveProducts(event) {
+      event.preventDefault();
+      const cards = document.querySelectorAll('.product-card-item:not(.hidden)');
+      if (cards.length === 0) {
+          alert('Không có sản phẩm nào hiển thị để duyệt!');
+          return;
+      }
+      if (!confirm(`Bạn có chắc chắn muốn phê duyệt hàng loạt ${cards.length} sản phẩm đang hiển thị?`)) {
+          return;
+      }
+      const ids = [];
+      cards.forEach(card => {
+          ids.push(card.getAttribute('data-id'));
+      });
+      document.getElementById('bulkProductIds').value = ids.join(',');
+      document.getElementById('bulkApproveProductsForm').submit();
+  }
+
+  // --- Milestone Filter Functions ---
+  function populateSupplierDropdown() {
+      const supplierSelect = document.getElementById('filterSupplier');
+      if (!supplierSelect) return;
+      
+      const suppliers = new Set(allMilestones.map(m => m.supplier));
+      suppliers.forEach(sup => {
+          if (sup) {
+              const opt = document.createElement('option');
+              opt.value = sup;
+              opt.textContent = sup;
+              supplierSelect.appendChild(opt);
+          }
+      });
+  }
+
+  function populateProductDropdown(selectedSupplier = '') {
+      const productSelect = document.getElementById('filterProduct');
+      if (!productSelect) return;
+      
+      const currentVal = productSelect.value;
+      productSelect.innerHTML = '<option value="">Tất cả sản phẩm</option>';
+      
+      const filteredMilestones = selectedSupplier 
+          ? allMilestones.filter(m => m.supplier === selectedSupplier) 
+          : allMilestones;
+          
+      const products = new Set(filteredMilestones.map(m => m.product));
+      
+      products.forEach(prod => {
+          if (prod) {
+              const opt = document.createElement('option');
+              opt.value = prod;
+              opt.textContent = prod;
+              productSelect.appendChild(opt);
+          }
+      });
+      
+      if (Array.from(productSelect.options).some(opt => opt.value === currentVal)) {
+          productSelect.value = currentVal;
+      }
+  }
+
+  function handleSupplierChange() {
+      const supplierSelect = document.getElementById('filterSupplier');
+      const selectedSupplier = supplierSelect.value;
+      
+      populateProductDropdown(selectedSupplier);
+      applyMilestoneFilters();
+  }
+
+  function applyMilestoneFilters() {
+      const selectedSupplier = document.getElementById('filterSupplier').value;
+      const selectedProduct = document.getElementById('filterProduct').value;
+      
+      const cards = document.querySelectorAll('.milestone-card');
+      let visibleCount = 0;
+      
+      cards.forEach(card => {
+          const supplier = card.getAttribute('data-supplier');
+          const product = card.getAttribute('data-product');
+          
+          const matchSupplier = !selectedSupplier || supplier === selectedSupplier;
+          const matchProduct = !selectedProduct || product === selectedProduct;
+          
+          if (matchSupplier && matchProduct) {
+              card.classList.remove('hidden');
+              visibleCount++;
+          } else {
+              card.classList.add('hidden');
+          }
+      });
+      
+      document.getElementById('visibleMilestoneCount').textContent = `(${visibleCount})`;
+  }
+  
+  function prepareBulkApprove(event) {
+      event.preventDefault();
+      
+      const cards = document.querySelectorAll('.milestone-card:not(.hidden)');
+      if (cards.length === 0) {
+          alert('Không có cột mốc nào hiển thị để duyệt!');
+          return;
+      }
+      
+      const confirmMsg = `Bạn có chắc chắn muốn phê duyệt hàng loạt ${cards.length} cột mốc đang hiển thị lên Blockchain?`;
+      if (!confirm(confirmMsg)) {
+          return;
+      }
+      
+      const ids = [];
+      cards.forEach(card => {
+          ids.push(card.getAttribute('data-id'));
+      });
+      
+      document.getElementById('bulkMilestoneIds').value = ids.join(',');
+      document.getElementById('bulkApproveForm').submit();
+  }
+
+  // Initialize Lucide Icons
+  lucide.createIcons();
+</script>
+{% endblock %}

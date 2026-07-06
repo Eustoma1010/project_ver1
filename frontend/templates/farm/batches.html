@@ -79,6 +79,9 @@
                 <a href="{% url 'farm:add_milestone' batch.id %}" class="w-8 h-8 rounded-full bg-secondary text-primary flex items-center justify-center hover:bg-primary hover:text-white transition duration-300" title="Thêm mốc chăm sóc">
                   <i data-lucide="plus" class="w-4 h-4"></i>
                 </a>
+                <a href="{% url 'farm:simulate_iot' batch.id %}" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition duration-300" title="Mô phỏng dữ liệu IoT (Cảm biến)">
+                  <i data-lucide="cpu" class="w-4 h-4"></i>
+                </a>
                 {% if batch.status == "CULTIVATING" %}
                   <a href="{% url 'farm:harvest_batch' batch.id %}" class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center hover:bg-amber-500 hover:text-white transition duration-300" title="Xác nhận thu hoạch">
                     <i data-lucide="check" class="w-4 h-4"></i>
@@ -123,7 +126,19 @@
                       
                       <div class="space-y-0.5">
                         <div class="flex items-center justify-between gap-4">
-                          <h5 class="font-bold text-[#1A3020]">{{ milestone.title }}</h5>
+                          <h5 class="font-bold text-[#1A3020] flex items-center gap-1.5">
+                            {{ milestone.title }}
+                            {% if milestone.status == "PENDING_AUDIT" %}
+                              <span class="inline-flex text-[8px] font-bold bg-amber-50 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded-full">Chờ duyệt</span>
+                            {% elif milestone.status == "REJECTED" %}
+                              <span class="inline-flex text-[8px] font-bold bg-red-50 text-red-600 border border-red-200 px-1.5 py-0.5 rounded-full">Từ chối</span>
+                            {% else %}
+                              <span class="inline-flex text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-full">Xác thực</span>
+                            {% endif %}
+                            {% if milestone.milestone_type == "IOT" %}
+                              <span class="inline-flex text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded-full">IoT</span>
+                            {% endif %}
+                          </h5>
                           <span class="text-[9px] text-muted-foreground">{{ milestone.timestamp|date:"d/m H:i" }}</span>
                         </div>
                         <p class="text-[11px] text-muted-foreground leading-relaxed">{{ milestone.description|truncatechars:120 }}</p>

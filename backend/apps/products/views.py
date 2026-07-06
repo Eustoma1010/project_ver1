@@ -8,7 +8,7 @@ from django.db.models import Case, When, Value, IntegerField
 
 def home(request):
     categories = Category.objects.all()
-    products = Product.objects.filter(available=True).annotate(
+    products = Product.objects.filter(status='APPROVED', farm__status='APPROVED').annotate(
         priority=Case(
             When(badge="Bán chạy", then=Value(1)),
             When(badge="Organic", then=Value(2)),
@@ -20,7 +20,7 @@ def home(request):
             output_field=IntegerField()
         )
     ).order_by("priority", "-created_at")
-    farms = Farm.objects.all()
+    farms = Farm.objects.filter(status='APPROVED')
     blogs = BlogPost.objects.all()
     
     # Optional server-side search/filter fallback
@@ -28,8 +28,8 @@ def home(request):
     if q:
         products = products.filter(name__icontains=q) | products.filter(origin__icontains=q)
         
-    total_farms = Farm.objects.count()
-    total_products = Product.objects.filter(available=True).count()
+    total_farms = Farm.objects.filter(status='APPROVED').count()
+    total_products = Product.objects.filter(status='APPROVED', farm__status='APPROVED').count()
     total_customers = CustomUser.objects.filter(is_staff=False).count()
     
     favorited_product_ids = []
@@ -92,7 +92,7 @@ def trace_batch_api(request, batch_id):
             "milestones": [],
             "delivery_hashes": []
         }
-        for m in batch.milestones.all().order_by("timestamp"):
+        for m in batch.milestones.filter(status="VERIFIED").order_by("timestamp"):
             journey["milestones"].append({
                 "title": m.title,
                 "description": m.description,

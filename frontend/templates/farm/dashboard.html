@@ -186,7 +186,7 @@
                             <form method="post" class="inline">
                               {% csrf_token %}
                               <input type="hidden" name="update_item_status" value="1">
-                              <input type="hidden" name="item_id" value="{{ item.id }}">
+                              <input type="hidden" name="item_id" value="{{ item.id|stringformat:"d" }}">
                               <input type="hidden" name="status" value="APPROVED">
                               <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow-sm">
                                 Duyệt
@@ -195,7 +195,7 @@
                             <form method="post" class="inline">
                               {% csrf_token %}
                               <input type="hidden" name="update_item_status" value="1">
-                              <input type="hidden" name="item_id" value="{{ item.id }}">
+                              <input type="hidden" name="item_id" value="{{ item.id|stringformat:"d" }}">
                               <input type="hidden" name="status" value="REJECTED">
                               <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition shadow-sm">
                                 Từ chối
@@ -231,7 +231,7 @@
                     <form method="post" class="inline">
                       {% csrf_token %}
                       <input type="hidden" name="update_order_status" value="1">
-                      <input type="hidden" name="order_id" value="{{ order_group.order.id }}">
+                      <input type="hidden" name="order_id" value="{{ order_group.order.id|stringformat:"d" }}">
                       <input type="hidden" name="order_status" value="DELIVERED">
                       <button type="submit" class="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">
                         <i data-lucide="check-circle" class="w-3 h-3"></i> Xác nhận đã giao
