@@ -67,3 +67,131 @@ Dưới đây là danh sách các tài khoản kiểm thử đã được thiế
   2. Triển khai lại Smart Contract: `npx hardhat run scripts/deploy.js --network localhost`
   3. Cập nhật địa chỉ Contract mới trong `blockchain.py`: `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512`
   4. Khởi tạo lại các tài khoản kiểm thử mặc định: `admin`, `auditor`, `buyer`.
+
+---
+
+## 🚀 Hướng dẫn Quy trình Kiểm thử Hệ thống (Testing Workflow)
+
+Để kiểm tra toàn diện tất cả tính năng của hệ thống (Đăng ký Nông trại, Duyệt 2 bước, Đăng sản phẩm, Quản lý lô hàng, Ghi nhận Blockchain, Mua hàng FIFO, và Giao nhận hàng), chúng ta phân chia 10 tài khoản người dùng thành **4 Nhóm Kiểm thử (Test Cases)** cụ thể dưới đây.
+
+---
+
+### 🧪 CASE 1: Quy trình hoạt động chuẩn (Happy Path End-to-End)
+* **Tài khoản sử dụng**: `go_cafe_owner` và `highlands_coffee_owner`
+* **Mục tiêu**: Kiểm tra luồng chạy hoàn chỉnh không lỗi từ đăng ký đến giao hàng và ghi chuỗi khối thành công.
+
+#### Các bước thực hiện:
+1. **Bước 1: Nộp hồ sơ Nông trại**
+   * Đăng nhập bằng `go_cafe_owner` (pass: `test123`).
+   * Truy cập mục **Đăng ký nhà cung cấp** trên thanh Menu.
+   * Nhập thông tin Nông trại (tên, mã số thuế, vùng miền, mô tả, tải file giấy phép KD...). Gửi hồ sơ.
+   * *Kết quả mong đợi*: Màn hình hiển thị trạng thái "Chờ duyệt hồ sơ".
+2. **Bước 2: Quản trị viên duyệt hồ sơ (Bước 1)**
+   * Đăng nhập bằng `admin` (pass: `admin123`).
+   * Truy cập trang **Quản trị (Duyệt sản phẩm & nhà cung cấp)** (`/admin/reports/`).
+   * Click **Duyệt hồ sơ** cho nông trại của `go_cafe_owner`.
+   * *Kết quả mong đợi*: Trạng thái nông trại chuyển sang "Chờ kiểm định thực địa".
+3. **Bước 3: Kiểm định viên thẩm định thực địa (Bước 2)**
+   * Đăng nhập bằng `auditor` (pass: `auditor123`).
+   * Truy cập trang **Thẩm định viên (Auditor)**.
+   * Ở mục "Thẩm định Nông trại Mới", click **Phê duyệt & cấp chứng chỉ**.
+   * *Kết quả mong đợi*: Nông trại được chuyển sang trạng thái "HOẠT ĐỘNG". Vai trò của `go_cafe_owner` tự động nâng lên thành `FARMER`.
+4. **Bước 4: Nông dân đăng bán sản phẩm mới**
+   * Đăng nhập lại bằng `go_cafe_owner`.
+   * Truy cập **Quản lý sản phẩm** -> Click **Thêm sản phẩm mới**.
+   * Nhập thông tin sản phẩm (chọn danh mục, tên, giá, đơn vị, mô tả, ảnh). Gửi yêu cầu.
+   * *Kết quả mong đợi*: Sản phẩm được tạo với trạng thái "Chờ thẩm định".
+5. **Bước 5: Thẩm định viên duyệt sản phẩm**
+   * Đăng nhập bằng `auditor`.
+   * Tại mục "Thẩm định sản phẩm mới", tìm sản phẩm của `go_cafe_owner` và click **Duyệt**.
+   * *Kết quả mong đợi*: Trạng thái sản phẩm thành "Đã duyệt". Sản phẩm xuất hiện trên trang chủ cửa hàng nhưng có nhãn "Hết hàng" (vì chưa có lô thu hoạch nào).
+6. **Bước 6: Khởi tạo Lô canh tác & Ghi mốc lịch trình**
+   * Đăng nhập bằng `go_cafe_owner`.
+   * Truy cập **Quản lý lô hàng** -> Click **Tạo lô sản phẩm mới**.
+   * Nhập mã lô, số lượng dự kiến, chọn sản phẩm.
+   * Tiến hành thêm một cột mốc lịch trình mới (ví dụ: "Gieo hạt" hoặc "Bón phân") kèm các thông số kỹ thuật (pH đất, độ ẩm...).
+   * *Kết quả mong đợi*: Lô hàng được tạo thành công, cột mốc hiển thị trạng thái "Chờ xác thực".
+7. **Bước 7: Thẩm định viên xác thực cột mốc lên Blockchain**
+   * Đăng nhập bằng `auditor`.
+   * Tại mục "Xác thực cột mốc hành trình", nhập mã thanh tra (Inspection ID), ý kiến kiểm định và click **Phê duyệt**.
+   * *Kết quả mong đợi*: Cột mốc chuyển sang trạng thái "Đã xác thực", tạo ra mã giao dịch Blockchain (`blockchain_tx_hash`).
+8. **Bước 8: Thu hoạch & Mở bán sản phẩm**
+   * Đăng nhập bằng `go_cafe_owner`.
+   * Tạo một cột mốc đặc biệt với tiêu đề chính xác: `Thu hoạch & Đóng gói`. Nhập ngày thu hoạch, số lượng thực tế.
+   * Đăng nhập bằng `auditor` -> tiến hành duyệt cột mốc `Thu hoạch & Đóng gói` này lên Blockchain.
+   * *Kết quả mong đợi*: Lô hàng tự động chuyển sang trạng thái `HARVESTED` (Đã thu hoạch). Sản phẩm trên trang chủ tự động chuyển sang trạng thái "Còn hàng" và cập nhật số dư kho.
+9. **Bước 9: Khách hàng đặt mua sản phẩm**
+   * Đăng nhập bằng `buyer` (pass: `buyer123`).
+   * Chọn sản phẩm của `go_cafe_owner` trên trang chủ, thêm vào giỏ hàng và tiến hành đặt hàng.
+   * *Kết quả mong đợi*: Đơn hàng được tạo thành công ở trạng thái "Chờ xử lý".
+10. **Bước 10: Nông dân duyệt đơn hàng & Giao hàng**
+    * Đăng nhập bằng `go_cafe_owner`.
+    * Tại Dashboard, click **Duyệt đơn hàng** cho sản phẩm vừa đặt.
+    * *Kết quả mong đợi*: Trạng thái đơn hàng tự động chuyển sang "Đang giao" (Shipped) và gán đơn vị vận chuyển.
+    * Click tiếp **Xác nhận giao hàng thành công** -> Hệ thống tự động ghi nhận biên lai giao nhận lên Blockchain.
+
+---
+
+### 🧪 CASE 2: Luồng Từ chối & Cập nhật lại (Rejection & Resubmission)
+* **Tài khoản sử dụng**: `organica_owner` và `koita_owner`
+* **Mục tiêu**: Kiểm tra hoạt động của các nút từ chối hồ sơ/sản phẩm và khả năng chỉnh sửa gửi lại của nhà cung cấp.
+
+#### Các bước thực hiện:
+1. **Từ chối đăng ký Nông trại ở Bước 1**:
+   * Đăng nhập bằng `organica_owner`, gửi đơn đăng ký nông trại.
+   * Đăng nhập bằng `admin`, click **Từ chối** hồ sơ.
+   * *Kết quả mong đợi*: Nông trại chuyển sang trạng thái `REJECTED`. Khi `organica_owner` đăng nhập lại, họ sẽ thấy nút đăng ký mở lại để nộp đơn mới.
+2. **Từ chối đăng ký Nông trại ở Bước 2**:
+   * Đăng nhập bằng `koita_owner`, gửi đơn đăng ký nông trại. Admin duyệt hồ sơ bước 1.
+   * Đăng nhập bằng `auditor`, click **Từ chối cấp chứng chỉ**.
+   * *Kết quả mong đợi*: Trạng thái nông trại chuyển sang `REJECTED`. Nhà cung cấp có thể cập nhật lại thông tin để gửi duyệt lại.
+3. **Từ chối duyệt sản phẩm**:
+   * Nhà cung cấp (đã được duyệt) thêm sản phẩm mới.
+   * Auditor click **Từ chối** duyệt sản phẩm đó.
+   * *Kết quả mong đợi*: Sản phẩm có trạng thái `REJECTED`. Nhà cung cấp có thể chỉnh sửa lại sản phẩm này thông qua trang quản lý để gửi duyệt lại.
+4. **Từ chối xác thực cột mốc**:
+   * Nhà cung cấp thêm mốc lịch trình.
+   * Auditor click **Từ chối** xác thực cột mốc đó.
+   * *Kết quả mong đợi*: Cột mốc hiển thị nhãn màu đỏ "Từ chối" kèm ý kiến của Auditor. Mốc này **không** được ghi nhận lên Blockchain để bảo vệ tính trung thực của chuỗi cung ứng.
+
+---
+
+### 🧪 CASE 3: Thao tác hàng loạt & Bộ lọc liên kết (Bulk Actions & Dynamic Filters)
+* **Tài khoản sử dụng**: `mua_owner`, `sonlanga_owner`, `health_paradise_owner`
+* **Mục tiêu**: Kiểm tra các giao diện nâng cao, bộ lọc liên kết không lặp dữ liệu và các nút xử lý hàng loạt.
+
+#### Các bước thực hiện:
+1. **Kiểm tra bộ lọc liên kết (Cascading Dropdowns)**:
+   * Cho cả 3 tài khoản đăng ký nông trại và sản phẩm thành công.
+   * Truy cập trang `/admin/reports/` hoặc `/farm/auditor_dashboard/`.
+   * *Thao tác*: Thay đổi lựa chọn tại dropdown Nông trại ở cột trái.
+   * *Kết quả mong đợi*: Dropdown Danh mục/Sản phẩm ở cột bên phải tự động cập nhật và thu hẹp danh sách chỉ hiển thị các sản phẩm thuộc về nông trại đã chọn ở bên trái, sắp xếp gọn gàng trên cùng một hàng.
+2. **Duyệt hàng loạt sản phẩm**:
+   * Đăng nhập bằng `mua_owner` và `sonlanga_owner` gửi phê duyệt nhiều sản phẩm cùng lúc.
+   * Đăng nhập bằng `auditor`, click nút **Duyệt tất cả sản phẩm** đang hiển thị theo bộ lọc hiện tại.
+   * *Kết quả mong đợi*: Tất cả các sản phẩm được tích chọn tự động chuyển sang trạng thái "Đã duyệt" chỉ sau 1 click chuột.
+3. **Duyệt hàng loạt cột mốc hành trình**:
+   * Tạo nhiều mốc lịch trình chờ duyệt cho các lô hàng khác nhau.
+   * Đăng nhập bằng `auditor`, click nút **Xác thực tất cả cột mốc** hiển thị theo bộ lọc.
+   * *Kết quả mong đợi*: Hệ thống tự động xử lý hàng loạt các giao dịch ký gửi lên Blockchain, gán mã giao dịch tương ứng và hoàn tất quy trình nhanh chóng.
+
+---
+
+### 🧪 CASE 4: Đình chỉ hoạt động & Thu hồi quyền (Suspension Flow)
+* **Tài khoản sử dụng**: `coop_finest_owner`, `vua_gao_owner`, `cat_tuong_owner`
+* **Mục tiêu**: Đảm bảo hệ thống ngăn chặn hiệu quả các nhà cung cấp vi phạm chất lượng hoặc không đạt kiểm định định kỳ.
+
+#### Các bước thực hiện:
+1. **Bước 1: Đăng ký và hoạt động bình thường**
+   * Cho các tài khoản trên tạo nông trại và đăng bán sản phẩm đã duyệt.
+2. **Bước 2: Tiến hành kiểm tra định kỳ không đạt**
+   * Đăng nhập bằng `auditor`.
+   * Tại mục "Danh sách nhà cung cấp đang hoạt động", tìm nông trại của `coop_finest_owner`.
+   * Click **Kiểm tra thực địa** -> Chọn kết quả **Không Đạt (Fail)** kèm ghi chú vi phạm.
+   * *Kết quả mong đợi*: 
+     * Nông trại tự động chuyển sang trạng thái "ĐÌNH CHỈ" (`SUSPENDED`).
+     * Tất cả các sản phẩm của nông trại này trên trang chủ lập tức bị ẩn hoặc vô hiệu hóa nút mua hàng.
+3. **Bước 3: Kiểm tra quyền hạn khi bị đình chỉ**
+   * Đăng nhập bằng `coop_finest_owner`.
+   * *Kết quả mong đợi*: Hệ thống hiển thị thông báo tài khoản đang bị đình chỉ hoạt động. Nông dân bị chặn quyền cập nhật cài đặt, không thể tạo lô hàng mới hay thêm cột mốc mới.
+
