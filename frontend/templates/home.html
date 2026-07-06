@@ -160,7 +160,7 @@
                     <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
                     Nông sản sạch · Giao tận nơi toàn quốc
                 </div>
-                <h1 class="animate-in delay-100 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.15] font-display" style="text-wrap: balance">
+                <h1 class="animate-in delay-100 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.15] font-serif" style="text-wrap: balance">
                     Nông Sản Sạch <br>
                     <span class="text-primary">Từ Nhà Cung Cấp</span> <br>
                     Đến Gia Đình
@@ -180,15 +180,15 @@
                 <!-- Stats -->
                 <div class="animate-in delay-400 flex gap-10 pt-4 border-t border-border/60">
                     <div>
-                        <div class="text-3xl font-bold text-primary font-display">{{ total_farms|default:0 }}</div>
+                        <div class="text-3xl font-bold text-primary font-serif">{{ total_farms|default:0 }}</div>
                         <div class="text-sm text-muted-foreground mt-0.5">Nhà cung cấp</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-bold text-primary font-display">{{ total_products|default:0 }}</div>
+                        <div class="text-3xl font-bold text-primary font-serif">{{ total_products|default:0 }}</div>
                         <div class="text-sm text-muted-foreground mt-0.5">Sản phẩm</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-bold text-primary font-display">{{ total_customers|default:0 }}</div>
+                        <div class="text-3xl font-bold text-primary font-serif">{{ total_customers|default:0 }}</div>
                         <div class="text-sm text-muted-foreground mt-0.5">Khách hàng</div>
                     </div>
                 </div>
@@ -315,7 +315,7 @@
         
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
-                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-display">Sản Phẩm Nổi Bật</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-serif">Sản Phẩm Nổi Bật</h2>
             </div>
         </div>
 
@@ -423,7 +423,7 @@
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div class="text-left">
                 <span class="text-xs font-bold text-primary uppercase tracking-widest bg-secondary px-3 py-1.5 rounded-full">Bản sắc chân thực</span>
-                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-display mt-3">Hành Trình Từ Nhà Cung Cấp</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-serif mt-3">Hành Trình Từ Nhà Cung Cấp</h2>
                 <p class="text-base text-muted-foreground mt-2 max-w-xl">Những câu chuyện chân thực về nguồn gốc nông sản và tâm huyết của người nông dân Việt.</p>
             </div>
             <!-- Slider Controls -->
@@ -453,7 +453,7 @@
                     <!-- Content -->
                     <div class="px-2 flex-grow flex flex-col justify-between space-y-3">
                         <div class="space-y-2">
-                            <h3 class="font-bold text-lg font-display text-foreground group-hover:text-primary transition-colors leading-snug">{{ farm.name }}</h3>
+                            <h3 class="font-bold text-lg font-serif text-foreground group-hover:text-primary transition-colors leading-snug">{{ farm.name }}</h3>
                             <p class="text-sm text-muted-foreground leading-relaxed line-clamp-3">{{ farm.description }}</p>
                         </div>
                         
@@ -481,7 +481,7 @@
 <section class="bg-card border-y border-border py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="text-center mb-10">
-            <h2 class="text-3xl font-bold font-display text-foreground">Chứng Nhận Chất Lượng</h2>
+            <h2 class="text-3xl font-bold font-serif text-foreground">Chứng Nhận Chất Lượng</h2>
             <p class="text-sm text-muted-foreground mt-2">Verdant hợp tác với các nhà cung cấp đạt tiêu chuẩn kiểm định nghiêm ngặt</p>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-5">
@@ -527,7 +527,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
         <div class="flex items-end justify-between mb-8">
             <div>
-                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-display">Kiến Thức Nông Sản</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-serif">Kiến Thức Nông Sản</h2>
             </div>
         </div>
         
@@ -579,7 +579,7 @@
                 <i data-lucide="map-pin" class="w-4 h-4"></i>
                 <span id="modal-farm-region"></span>
             </div>
-            <h3 id="modal-farm-name" class="font-bold text-2xl sm:text-3xl font-display text-foreground"></h3>
+            <h3 id="modal-farm-name" class="font-bold text-2xl sm:text-3xl font-serif text-foreground"></h3>
             <p id="modal-farm-desc" class="text-sm sm:text-base text-muted-foreground leading-relaxed"></p>
             
             <!-- Contact Details -->
@@ -609,7 +609,7 @@
                 <span id="modal-blog-category" class="font-bold text-primary bg-secondary px-3 py-1 rounded-full"></span>
                 <span id="modal-blog-date" class="text-muted-foreground"></span>
             </div>
-            <h3 id="modal-blog-title" class="font-bold text-2xl sm:text-3xl font-display text-foreground leading-snug"></h3>
+            <h3 id="modal-blog-title" class="font-bold text-2xl sm:text-3xl font-serif text-foreground leading-snug"></h3>
             <div class="w-16 h-0.5 bg-primary/20 rounded-full"></div>
             <div id="modal-blog-content" class="prose max-w-none text-sm sm:text-base text-muted-foreground leading-relaxed space-y-4"></div>
         </div>
