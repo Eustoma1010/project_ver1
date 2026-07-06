@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-db.sqlite3
 staticfiles/
 media/
 .DS_Store
@@ -13,7 +12,6 @@ skills-lock.json
 .vscode/
 DESIGN.md
 PRODUCT.md
-products_data.md
 contract/README.md
 
 # impeccable-live-ignore-start
