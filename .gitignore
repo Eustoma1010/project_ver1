@@ -10,6 +10,11 @@ media/
 .agents/
 .impeccable/
 skills-lock.json
+.vscode/
+DESIGN.md
+PRODUCT.md
+products_data.md
+contract/README.md
 
 # impeccable-live-ignore-start
 .impeccable/hook.cache.json
