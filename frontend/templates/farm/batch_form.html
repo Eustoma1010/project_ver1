@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Verdant{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-12 px-4 sm:px-6 space-y-8">
+  <div class="border-b border-border pb-6">
+    <span class="inline-flex bg-secondary text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
+      Trang quản trị đối tác
+    </span>
+    <h2 class="text-3xl font-bold font-serif text-[#1A3020] mt-3">{{ title }}</h2>
+    <p class="text-sm text-muted-foreground mt-1">Đăng ký một chu kỳ sản xuất / gieo trồng mới cho sản phẩm nông sản sạch của {{ farm.name }}.</p>
+  </div>
+
+  <div class="bg-white border border-border rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1A3020] uppercase tracking-wider">Chọn Sản phẩm</label>
+        <select name="product" required class="w-full border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition bg-white text-[#1A3020]">
+          <option value="">-- Chọn sản phẩm có sẵn --</option>
+          {% for product in products %}
+            <option value="{{ product.id }}">{{ product.name }} ({{ product.unit }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1A3020] uppercase tracking-wider">Mã số lô hàng (Batch Number)</label>
+        <input type="text" name="batch_number" placeholder="VD: LOT-CARROT-2026-07" required class="w-full border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-[#1A3020] font-mono">
+        <p class="text-[10px] text-muted-foreground">Mã lô định danh bất biến trên Blockchain. Nên đặt theo định dạng chuẩn: <code class="bg-muted px-1.5 py-0.5 rounded font-mono text-[9px]">LOT-[MÃ SẢN PHẨM]-[NĂM][THÁNG]</code>.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-[#1A3020] uppercase tracking-wider">Số lượng khởi tạo ban đầu</label>
+          <input type="number" name="initial_quantity" min="1" required class="w-full border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-[#1A3020]" placeholder="Ví dụ: 100">
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-[#1A3020] uppercase tracking-wider">Ngày bắt đầu chu kỳ</label>
+          <input type="date" name="seeding_date" required class="w-full border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-[#1A3020]">
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-[#007A36]/5 to-[#F5A300]/5 border border-[#007A36]/10 p-5 rounded-2xl flex items-start gap-3.5">
+        <div class="w-8 h-8 rounded-full bg-[#007A36]/10 flex items-center justify-center text-[#007A36] shrink-0">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        </div>
+        <div class="space-y-1 text-xs text-muted-foreground">
+          <h4 class="font-bold text-[#1A3020]">Đồng bộ Web3 Blockchain</h4>
+          <p>Khi bạn nhấn tạo lô hàng, hệ thống sẽ thực hiện giao dịch ghi nhận vĩnh viễn địa chỉ, sản phẩm và ngày bắt đầu lên Blockchain Hardhat. Hành động này không thể sửa hoặc xóa sau khi tạo thành công.</p>
+        </div>
+      </div>
+
+      <div class="pt-4 flex flex-col sm:flex-row gap-3">
+        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#007A36] hover:bg-[#00632b] text-white px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-md hover:-translate-y-0.5">
+          <i data-lucide="git-commit" class="w-4 h-4"></i> Khởi tạo Lô &amp; Lưu vết Blockchain
+        </button>
+        <a href="{% url 'farm:batches' %}" class="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-primary px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300">
+          Quay lại danh sách
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Initialize Lucide Icons
+  lucide.createIcons();
+</script>
+{% endblock %}

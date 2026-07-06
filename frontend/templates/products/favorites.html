@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Sản phẩm yêu thích - Verdant{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-12 px-4 sm:px-6 mb-16">
+  <!-- Header Row -->
+  <div class="border-b border-border pb-6 mb-8">
+    <span class="text-xs font-bold text-primary uppercase tracking-widest bg-secondary px-3 py-1.5 rounded-full">Danh sách cá nhân</span>
+    <h2 class="text-3xl font-bold font-serif text-foreground mt-3">Sản Phẩm Yêu Thích</h2>
+    <p class="text-sm text-muted-foreground mt-1">Lưu trữ các nông sản tươi ngon bạn yêu thích và quan tâm.</p>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="space-y-3 mb-6">
+      {% for message in messages %}
+        <div class="p-4 rounded-xl text-sm font-medium bg-green-50 text-green-800 border border-green-200">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Favorites List -->
+  {% if favorites %}
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {% for fav in favorites %}
+        <div class="product-card group bg-card border border-border rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-300 relative flex flex-col justify-between">
+          <!-- Image and Badges -->
+          <div class="relative aspect-square bg-muted overflow-hidden">
+            <img src="{{ fav.product.image_url }}" alt="{{ fav.product.name }}" class="w-full h-full object-cover transition-all duration-300">
+            
+            {% if fav.product.badge %}
+              <span class="absolute top-2.5 left-2.5 text-xs font-bold px-2.5 py-1 rounded-full 
+                {% if fav.product.badge == 'Hữu cơ' %}bg-emerald-100 text-emerald-700
+                {% elif fav.product.badge == 'VietGAP' %}bg-blue-100 text-blue-700
+                {% elif fav.product.badge == 'Đặc sản' %}bg-amber-100 text-amber-700
+                {% elif fav.product.badge == 'Bán chạy' %}bg-red-100 text-red-700
+                {% else %}bg-violet-100 text-violet-700{% endif %}"
+              >
+                {{ fav.product.badge }}
+              </span>
+            {% endif %}
+
+            <!-- Remove from favorites button -->
+            <a href="{% url 'toggle-favorite' fav.product.id %}" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 text-red-500 shadow-sm flex items-center justify-center hover:bg-red-50 transition">
+              <i data-lucide="heart" class="w-4.5 h-4.5 fill-red-500"></i>
+            </a>
+          </div>
+
+          <!-- Product Info -->
+          <div class="p-4 space-y-2.5 flex-grow flex flex-col justify-between">
+            <div class="space-y-1.5">
+              <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+                <i data-lucide="map-pin" class="w-3 h-3"></i>
+                {{ fav.product.origin }}
+              </div>
+              <h3 class="font-semibold text-[15px] leading-tight text-foreground truncate">{{ fav.product.name }}</h3>
+              
+              <div class="flex items-center gap-1">
+                <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+                <span class="text-sm font-medium">{{ fav.product.rating }}</span>
+                <span class="text-xs text-muted-foreground">({{ fav.product.reviews_count }})</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-border/50 mt-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-primary text-base">{{ fav.product.price|intcomma }}đ</span>
+                  <span class="text-xs text-muted-foreground">/{{ fav.product.unit }}</span>
+                </div>
+                 <button onclick="addToCart({{ fav.product.id|stringformat:"d" }}, '{{ fav.product.name|escapejs }}', {{ fav.product.price|stringformat:"d" }}, '{{ fav.product.image_url|escapejs }}', '{{ fav.product.unit|escapejs }}')" class="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-full text-xs font-semibold transition">
+                  <i data-lucide="shopping-cart" class="w-3 h-3"></i> Mua
+                </button>
+              </div>
+
+              {% if fav.product.active_batch %}
+                <div class="border-t border-dashed border-border pt-1.5 text-[10px] text-muted-foreground flex justify-between">
+                  <span>Lô: <a href="/products/trace/{{ fav.product.active_batch.batch_number }}/" class="text-primary hover:underline font-mono font-semibold" title="Nhấp để truy xuất nguồn gốc Blockchain">{{ fav.product.active_batch.batch_number }}</a></span>
+                  <span>Hạn: {{ fav.product.active_batch.harvest_date|date:"d/m/Y" }}</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="bg-card border border-border p-16 text-center rounded-3xl space-y-4 max-w-lg mx-auto">
+      <div class="w-16 h-16 bg-secondary text-primary rounded-full flex items-center justify-center mx-auto">
+        <i data-lucide="heart" class="w-8 h-8"></i>
+      </div>
+      <h3 class="text-lg font-bold text-foreground">Danh sách yêu thích trống</h3>
+      <p class="text-sm text-muted-foreground">Hãy duyệt trang chủ và nhấp vào biểu tượng trái tim để lưu lại những nông sản sạch yêu thích của bạn.</p>
+      <a href="/" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-full text-sm font-semibold transition shadow-md">
+        Khám phá sản phẩm
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

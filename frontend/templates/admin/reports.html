@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Báo cáo &amp; Quản trị hệ thống - Verdant{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto mt-12 px-4 sm:px-6 mb-16 space-y-8">
+  <!-- Header Row -->
+  <div class="border-b border-border pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <span class="text-xs font-bold text-red-600 uppercase tracking-widest bg-red-50 border border-red-200 px-3 py-1.5 rounded-full">Kênh quản trị viên</span>
+      <h2 class="text-3xl font-bold font-serif text-foreground mt-3">Bảng Điều Khiển Hệ Thống</h2>
+      <p class="text-sm text-muted-foreground mt-1">Báo cáo doanh số toàn hệ thống, phê duyệt hồ sơ đối tác và giám sát vận hành.</p>
+    </div>
+    <div class="flex gap-3">
+      <a href="/admin/" target="_blank" class="inline-flex items-center gap-2 bg-muted hover:bg-muted/80 text-foreground px-5 py-2.5 rounded-full text-sm font-semibold border border-border transition-all">
+        <i data-lucide="shield" class="w-4 h-4 text-muted-foreground"></i> Django Admin Panel
+      </a>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+        <div class="p-4 rounded-xl text-sm font-medium bg-green-50 text-green-800 border border-green-200">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Grid 4 Metrics -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+    <!-- Total Revenue -->
+    <div class="bg-white border border-border p-6 rounded-2xl shadow-sm space-y-2.5">
+      <div class="flex justify-between items-center text-muted-foreground">
+        <span class="text-xs font-bold uppercase tracking-wider">Tổng doanh thu</span>
+        <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
+          <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-foreground">{{ total_revenue|intcomma }}đ</p>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Không tính đơn đã hủy</p>
+      </div>
+    </div>
+
+    <!-- Total Orders -->
+    <div class="bg-white border border-border p-6 rounded-2xl shadow-sm space-y-2.5">
+      <div class="flex justify-between items-center text-muted-foreground">
+        <span class="text-xs font-bold uppercase tracking-wider">Tổng đơn hàng</span>
+        <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-foreground">{{ total_orders }}</p>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Đã đặt trên hệ thống</p>
+      </div>
+    </div>
+
+    <!-- Total Farms -->
+    <div class="bg-white border border-border p-6 rounded-2xl shadow-sm space-y-2.5">
+      <div class="flex justify-between items-center text-muted-foreground">
+        <span class="text-xs font-bold uppercase tracking-wider">Nhà cung cấp</span>
+        <div class="w-8 h-8 bg-violet-50 text-violet-600 rounded-lg flex items-center justify-center">
+          <i data-lucide="building-2" class="w-5 h-5"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-foreground">{{ total_farms }}</p>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Đã đăng ký</p>
+      </div>
+    </div>
+
+    <!-- Pending Farms -->
+    <div class="bg-white border border-border p-6 rounded-2xl shadow-sm space-y-2.5 relative overflow-hidden">
+      {% if pending_farms > 0 %}
+        <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-ping m-2"></span>
+      {% endif %}
+      <div class="flex justify-between items-center text-muted-foreground">
+        <span class="text-xs font-bold uppercase tracking-wider text-red-600">Hồ sơ chờ duyệt</span>
+        <div class="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
+          <i data-lucide="clock" class="w-5 h-5"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-red-600">{{ pending_farms }}</p>
+        <p class="text-[11px] text-muted-foreground mt-0.5">Yêu cầu đối tác mới</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid: Left Approvals, Right Orders/Partners -->
+  <div class="grid lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Left Column: Approvals -->
+    <div class="lg:col-span-8 space-y-8">
+      
+      <!-- Pending Approvals Box -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-border pb-3 flex justify-between items-center">
+          <h3 class="text-lg font-bold font-serif text-foreground flex items-center gap-2">
+            <i data-lucide="user-check" class="w-5 h-5 text-red-600"></i> Phê duyệt nhà cung cấp mới
+          </h3>
+          <span class="text-xs font-semibold px-2 py-1 bg-red-50 text-red-700 rounded-full border border-red-200">{{ pending_farms }} yêu cầu</span>
+        </div>
+
+        {% if pending_farms_list %}
+          <div class="divide-y divide-border">
+            {% for farm_item in pending_farms_list %}
+              <div class="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="space-y-1.5 flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-foreground text-[15px]">{{ farm_item.name }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-secondary text-primary font-bold">{{ farm_item.region }}</span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <div><strong>Chủ sở hữu:</strong> {{ farm_item.owner.username }}</div>
+                    <div><strong>Mã số thuế:</strong> {{ farm_item.tax_code }}</div>
+                    <div><strong>Hotline:</strong> {{ farm_item.phone }}</div>
+                    <div><strong>Email:</strong> {{ farm_item.email }}</div>
+                    <div class="col-span-2"><strong>Địa chỉ hoạt động:</strong> {{ farm_item.province }}</div>
+                  </div>
+                  
+                  {% if farm_item.description %}
+                    <p class="text-xs text-foreground/75 bg-muted/30 p-2.5 rounded-xl border border-border/50 italic mt-2">"{{ farm_item.description }}"</p>
+                  {% endif %}
+                </div>
+
+                <!-- Approval Actions -->
+                <div class="flex md:flex-col gap-2 shrink-0 md:w-32 justify-end">
+                  <form method="post" class="flex gap-2 w-full">
+                    {% csrf_token %}
+                    <input type="hidden" name="farm_id" value="{{ farm_item.id }}">
+                    <button type="submit" name="action" value="approve" class="flex-1 bg-primary hover:bg-primary-hover text-white text-xs font-semibold py-2 px-3 rounded-xl transition text-center shadow-sm">
+                      Duyệt hồ sơ
+                    </button>
+                    <button type="submit" name="action" value="reject" onclick="return confirm('Bạn có chắc chắn từ chối và xóa yêu cầu này?')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-semibold py-2 px-3 rounded-xl transition text-center">
+                      Từ chối
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="py-8 text-center text-muted-foreground text-sm space-y-2">
+            <div class="w-12 h-12 bg-emerald-50 text-primary rounded-full flex items-center justify-center mx-auto">
+              <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+            <p class="font-semibold text-foreground">Không có hồ sơ nào cần phê duyệt</p>
+            <p class="text-xs">Tất cả các hồ sơ gửi lên đã được xử lý hoàn tất.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent Orders List -->
+      <div class="bg-white border border-border rounded-3xl p-6 shadow-sm space-y-5">
+        <div class="border-b border-border pb-3">
+          <h3 class="text-lg font-bold font-serif text-foreground flex items-center gap-2">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-primary"></i> Đơn hàng vừa đặt
+          </h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-border/80 text-muted-foreground uppercase font-bold tracking-wider">
+                <th class="py-3 px-2">Đơn hàng</th>
+                <th class="py-3 px-2">Khách hàng</th>
+                <th class="py-3 px-2">Ngày đặt</th>
+                <th class="py-3 px-2">Tổng tiền</th>
+                <th class="py-3 px-2 text-center">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/60">
+              {% for o in recent_orders %}
+                <tr class="hover:bg-muted/10 transition">
+                  <td class="py-3.5 px-2 font-bold text-foreground">#{{ o.id }}</td>
+                  <td class="py-3.5 px-2">
+                    <p class="font-semibold text-foreground/90 leading-none">{{ o.full_name }}</p>
+                    <p class="text-[10px] text-muted-foreground mt-0.5">{{ o.phone_number }}</p>
+                  </td>
+                  <td class="py-3.5 px-2 text-muted-foreground">{{ o.created_at|date:"d/m/Y H:i" }}</td>
+                  <td class="py-3.5 px-2 font-semibold text-foreground">{{ o.total_price|intcomma }}đ</td>
+                  <td class="py-3.5 px-2 text-center">
+                    <span class="px-2.5 py-0.5 rounded-full font-bold text-[10px] 
+                      {% if o.status == 'PENDING' %}bg-amber-100 text-amber-700
+                      {% elif o.status == 'CONFIRMED' %}bg-blue-100 text-blue-700
+                      {% elif o.status == 'SHIPPED' %}bg-violet-100 text-violet-700
+                      {% elif o.status == 'DELIVERED' %}bg-emerald-100 text-emerald-700
+                      {% else %}bg-red-100 text-red-700{% endif %}"
+                    >
+                      {{ o.get_status_display }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="py-6 text-center text-muted-foreground">Chưa có giao dịch nào được ghi nhận.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Approved Partners List -->
+    <div class="lg:col-span-4 bg-white border border-border rounded-3xl p-6 shadow-sm space-y-6">
+      <div class="border-b border-border pb-3">
+        <h3 class="text-lg font-bold font-serif text-foreground flex items-center gap-2">
+          <i data-lucide="award" class="w-5 h-5 text-primary"></i> Đối tác đã phê duyệt
+        </h3>
+        <p class="text-xs text-muted-foreground mt-0.5">Danh sách nhà cung cấp chính thức.</p>
+      </div>
+
+      <div class="space-y-4">
+        {% for ap in approved_farms_list %}
+          <div class="flex gap-3 p-3 bg-muted/20 border border-border/60 rounded-2xl hover:bg-muted/40 transition">
+            <div class="w-12 h-12 bg-secondary/30 text-primary rounded-xl overflow-hidden shrink-0 flex items-center justify-center font-bold text-lg font-serif">
+              {% if ap.image_url %}
+                <img src="{{ ap.image_url }}" alt="{{ ap.name }}" class="w-full h-full object-cover">
+              {% else %}
+                {{ ap.name|make_list|first|upper }}
+              {% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-1">
+                <p class="font-bold text-sm text-foreground truncate leading-tight">{{ ap.name }}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-100 shrink-0">Active</span>
+              </div>
+              <p class="text-xs text-muted-foreground mt-1 truncate"><strong>Hotline:</strong> {{ ap.phone }}</p>
+              <p class="text-[10px] text-muted-foreground mt-0.5 truncate"><strong>Địa chỉ:</strong> {{ ap.province }}</p>
+            </div>
+          </div>
+        {% empty %}
+          <div class="p-8 text-center text-muted-foreground text-xs bg-muted/10 border border-dashed border-border rounded-2xl">
+            Chưa có đối tác chính thức nào.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

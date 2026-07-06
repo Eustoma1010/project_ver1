@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng Nhập - Verdant{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-16 px-4">
+    <div class="bg-white border border-border rounded-3xl p-8 shadow-xl">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold font-serif text-foreground">Chào Mừng Quay Lại</h2>
+            <p class="text-xs text-muted-foreground mt-1">Đăng nhập tài khoản Verdant để tiếp tục mua sắm</p>
+        </div>
+
+        <form method="POST" action="{% url 'users:login' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-muted-foreground uppercase mb-1">Tên đăng nhập</label>
+                <input 
+                    type="text" 
+                    name="username" 
+                    required 
+                    placeholder="Nhập tên đăng nhập" 
+                    class="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                >
+            </div>
+            
+            <div>
+                <label class="block text-xs font-bold text-muted-foreground uppercase mb-1">Mật khẩu</label>
+                <input 
+                    type="password" 
+                    name="password" 
+                    required 
+                    placeholder="Nhập mật khẩu" 
+                    class="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                >
+            </div>
+
+            <button 
+                type="submit" 
+                class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-2.5 rounded-full text-sm transition mt-6 shadow-md shadow-primary/25"
+            >
+                Đăng Nhập
+            </button>
+        </form>
+
+        <div class="border-t border-border mt-6 pt-4 text-center">
+            <p class="text-xs text-muted-foreground">
+                Chưa có tài khoản? 
+                <a href="{% url 'users:signup' %}" class="text-primary font-bold hover:underline">Đăng ký ngay</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

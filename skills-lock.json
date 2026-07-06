@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "jules": {
+      "source": "sanjay3290/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/jules/SKILL.md",
+      "computedHash": "7411eeaf9d480bd2e2589c6f5b120f66447311f7fc88f2848bd140bd4c98be4b"
+    }
+  }
+}

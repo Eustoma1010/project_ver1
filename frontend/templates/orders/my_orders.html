@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Đơn Hàng Của Tôi - Verdant{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto my-12 px-4">
+    <div class="bg-white border border-border rounded-3xl p-8 shadow-xl space-y-6">
+        <div>
+            <h2 class="text-2xl font-bold font-serif text-foreground">Đơn Hàng Của Bạn</h2>
+            <p class="text-xs text-muted-foreground mt-1">Xem lịch sử đặt hàng, trạng thái vận chuyển và truy xuất nguồn gốc nông sản</p>
+        </div>
+
+        {% if orders %}
+            <div class="space-y-4">
+                {% for order in orders %}
+                    <div class="border border-border rounded-2xl hover:border-primary/30 transition bg-muted/10 overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-4 p-5 border-b border-border text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-foreground">Đơn hàng #{{ order.id }}</span>
+                                <span class="text-xs text-muted-foreground">{{ order.created_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div>
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold 
+                                    {% if order.status == 'PENDING' %}bg-amber-100 text-amber-700
+                                    {% elif order.status == 'CONFIRMED' %}bg-blue-100 text-blue-700
+                                    {% elif order.status == 'SHIPPED' %}bg-violet-100 text-violet-700
+                                    {% elif order.status == 'DELIVERED' %}bg-emerald-100 text-emerald-700
+                                    {% else %}bg-red-100 text-red-700{% endif %}"
+                                >
+                                    {{ order.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="p-5 grid md:grid-cols-2 gap-5">
+                            <!-- Items list -->
+                            <div class="space-y-3">
+                                <div class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sản phẩm đã đặt</div>
+                                <div class="space-y-3">
+                                    {% for item in order.items.all %}
+                                        <div class="bg-white p-3 rounded-xl border border-border/60">
+                                            <div class="flex items-center justify-between text-sm">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-10 h-10 rounded-lg bg-muted overflow-hidden shrink-0">
+                                                        <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-semibold text-foreground/90 leading-tight">{{ item.product.name }}</p>
+                                                        <p class="text-xs text-muted-foreground mt-0.5">{{ item.price|intcomma }}đ / {{ item.product.unit }}</p>
+                                                        <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+                                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                                                                {% if item.status == 'PENDING' %}bg-amber-50 text-amber-600 border border-amber-200
+                                                                {% elif item.status == 'APPROVED' %}bg-emerald-50 text-emerald-600 border border-emerald-200
+                                                                {% else %}bg-red-50 text-red-600 border border-red-200{% endif %}"
+                                                            >
+                                                                {{ item.get_status_display }}
+                                                            </span>
+                                                            {% if item.batch %}
+                                                                <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                                                    <i data-lucide="git-commit" class="w-3 h-3"></i> Lô: {{ item.batch.batch_number }}
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="text-xs font-bold text-foreground">x{{ item.quantity }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Truy xuất nguồn gốc Timeline cho mỗi sản phẩm -->
+                                            {% if item.batch %}
+                                                <div class="mt-3 border-t border-dashed border-border pt-3 space-y-2">
+                                                    <div class="flex items-center gap-3">
+                                                        <button type="button" class="text-[11px] font-semibold text-primary flex items-center gap-1 cursor-pointer hover:underline" onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')">
+                                                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Xem nhanh nhật ký
+                                                            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                                        </button>
+                                                         <a href="/products/trace/{{ item.batch.batch_number }}/" class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 hover:underline">
+                                                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Xem Trang Truy Xuất (Blockchain)
+                                                         </a>
+                                                    </div>
+                                                    <div class="hidden mt-2">
+                                                        <!-- Batch info -->
+                                                        <div class="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 mb-2.5 text-[11px] text-emerald-700 grid grid-cols-2 gap-1.5">
+                                                            <div><strong>Sản phẩm:</strong> {{ item.product.name }}</div>
+                                                            <div><strong>Mã lô:</strong> {{ item.batch.batch_number }}</div>
+                                                            <div><strong>Nông trại:</strong> {{ item.product.farm.name }}</div>
+                                                            <div><strong>Xuất xứ:</strong> {{ item.product.origin }}</div>
+                                                            <div><strong>Ngày gieo:</strong> {{ item.batch.seeding_date|date:"d/m/Y" }}</div>
+                                                            {% if item.batch.harvest_date %}
+                                                                <div><strong>Ngày thu hoạch:</strong> {{ item.batch.harvest_date|date:"d/m/Y" }}</div>
+                                                            {% endif %}
+                                                        </div>
+
+                                                        <!-- Timeline milestones -->
+                                                        <div class="relative border-l-2 border-emerald-200 ml-2 space-y-3">
+                                                            {% for milestone in item.batch.milestones.all %}
+                                                                <div class="relative pl-5">
+                                                                    <span class="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-emerald-500 border border-white"></span>
+                                                                    <div class="flex items-center justify-between gap-2">
+                                                                        <h5 class="text-[11px] font-bold text-foreground">{{ milestone.title }}</h5>
+                                                                        <span class="text-[10px] text-muted-foreground shrink-0">{{ milestone.timestamp|date:"d/m/Y H:i" }}</span>
+                                                                    </div>
+                                                                    <p class="text-[10px] text-muted-foreground mt-0.5">{{ milestone.description }}</p>
+                                                                    <div class="flex gap-3 mt-0.5 text-[9px] text-muted-foreground">
+                                                                        <span>{{ milestone.actor }} – {{ milestone.location }}</span>
+                                                                        {% if milestone.blockchain_tx_hash %}
+                                                                            <a href="javascript:void(0)" onclick="showTxDetail('{{ milestone.blockchain_tx_hash }}')" class="font-mono text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5 hover:underline" title="Xem chi tiết giao dịch trên Sổ cái">
+                                                                                <i data-lucide="link-2" class="w-2.5 h-2.5"></i> {{ milestone.blockchain_tx_hash|slice:":12" }}...
+                                                                            </a>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+
+                                                            <!-- Delivery milestone (if delivered) -->
+                                                            {% if order.status == "DELIVERED" %}
+                                                                <div class="relative pl-5">
+                                                                    <span class="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-blue-500 border border-white"></span>
+                                                                    <div class="flex items-center justify-between gap-2">
+                                                                        <h5 class="text-[11px] font-bold text-blue-700">Giao hàng thành công</h5>
+                                                                        <span class="text-[10px] text-muted-foreground shrink-0">{{ order.updated_at|date:"d/m/Y H:i" }}</span>
+                                                                    </div>
+                                                                    <p class="text-[10px] text-muted-foreground mt-0.5">Sản phẩm đã được giao thành công tới khách hàng. Mã băm SHA-256 bảo mật đã được ghi nhận trên Blockchain.</p>
+                                                                    {% if order.shipping_provider %}
+                                                                        <span class="text-[9px] text-muted-foreground">Vận chuyển: {{ order.shipping_provider }}</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Delivery info -->
+                            <div class="space-y-2 text-sm border-t md:border-t-0 md:border-l border-border pt-3 md:pt-0 md:pl-5">
+                                <div class="text-xs font-bold text-muted-foreground uppercase">Thông tin giao hàng</div>
+                                <div class="text-foreground/85 font-semibold">{{ order.full_name }}</div>
+                                <div class="text-xs text-muted-foreground mt-0.5">{{ order.phone_number }}</div>
+                                <div class="text-xs text-muted-foreground mt-1">{{ order.shipping_address }}</div>
+                                {% if order.shipping_provider %}
+                                    <div class="text-xs text-primary font-bold mt-2 flex items-center gap-1">
+                                        <i data-lucide="truck" class="w-3.5 h-3.5"></i> Vận chuyển bởi: {{ order.shipping_provider }}
+                                    </div>
+                                {% endif %}
+                                <div class="border-t border-dashed border-border mt-3 pt-2 flex justify-between font-bold text-base">
+                                    <span>Tổng thanh toán:</span>
+                                    <span class="text-primary">{{ order.total_price|intcomma }}đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-16 space-y-4">
+                <div class="flex justify-center text-primary/60 mb-2">
+                    <svg class="w-14 h-14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8m18 0-3-4H6L3 8m18 0H3m9-4v4m-3 7 3-3 3 3"/>
+                        <path d="M12 12c.5-1.5 2-2 3.5-1.5s1.5 2 0 3S12 12 12 12zm0 0c-.5-1.5-2-2-3.5-1.5S7 12.5 8.5 13.5 12 12 12 12z"/>
+                    </svg>
+                </div>
+                <h3 class="font-bold text-lg text-foreground">Bạn chưa có đơn hàng nào</h3>
+                <p class="text-sm text-muted-foreground max-w-sm mx-auto">Nông sản sạch đang mùa thu hoạch tươi ngon đang chờ bạn ở trang chủ.</p>
+                <a href="/" class="inline-block bg-primary hover:bg-primary-hover text-white font-semibold px-6 py-2.5 rounded-full text-sm transition mt-2">
+                    Mua Sắm Ngay
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Xác nhận Thu hoạch - Verdant{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-12 px-4 sm:px-6 space-y-8">
+  <div class="border-b border-border pb-6">
+    <span class="inline-flex bg-secondary text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
+      Mở bán &amp; Phân phối
+    </span>
+    <h2 class="text-3xl font-bold font-serif text-[#1A3020] mt-3">Xác Nhận Thu Hoạch Lô Hàng</h2>
+    <p class="text-sm text-muted-foreground mt-1">Xác nhận hoàn thành chu kỳ nuôi dưỡng / gieo trồng và đưa lô nông sản hữu cơ này vào phân phối mở bán.</p>
+  </div>
+
+  <div class="bg-white border border-border rounded-[32px] p-6 sm:p-8 shadow-sm space-y-6">
+    <!-- Current batch info card -->
+    <div class="bg-gradient-to-br from-[#F5A300]/5 to-[#007A36]/5 border border-[#F5A300]/10 rounded-2xl p-5 space-y-3">
+      <h4 class="text-xs font-bold text-[#8B5A2B] uppercase tracking-wider flex items-center gap-1.5">
+        <i data-lucide="info" class="w-4 h-4"></i> Thông tin lô sản xuất
+      </h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+        <div><span class="text-muted-foreground">Sản phẩm:</span> <strong class="text-[#1A3020]">{{ batch.product.name }}</strong></div>
+        <div><span class="text-muted-foreground">Mã lô hàng:</span> <strong class="text-[#1A3020] font-mono">{{ batch.batch_number }}</strong></div>
+        <div><span class="text-muted-foreground">Số lượng giống khởi tạo:</span> <strong class="text-[#1A3020]">{{ batch.initial_quantity }} {{ batch.product.unit }}</strong></div>
+        <div><span class="text-muted-foreground">Ngày xuống giống:</span> <strong class="text-[#1A3020]">{{ batch.seeding_date|date:"d/m/Y" }}</strong></div>
+      </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1A3020] uppercase tracking-wider">Ngày thu hoạch thực tế</label>
+        <input type="date" name="harvest_date" required class="w-full border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-[#1A3020]">
+      </div>
+
+      <!-- Blockchain message notice -->
+      <div class="bg-gradient-to-br from-[#007A36]/5 to-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl flex items-start gap-3.5">
+        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+        </div>
+        <div class="space-y-1 text-xs text-muted-foreground">
+          <h4 class="font-bold text-emerald-800">Quy tắc hàng đợi FIFO tự động</h4>
+          <p>Khi xác nhận thu hoạch, lô hàng này sẽ chuyển sang trạng thái <strong>"Sẵn sàng mở bán"</strong> và được xếp vào hàng đợi phân bổ tự động. Hệ thống sẽ tự động ưu tiên xuất kho các lô hàng có ngày thu hoạch sớm nhất trước để đảm bảo tính tươi ngon.</p>
+        </div>
+      </div>
+
+      <div class="pt-4 flex flex-col sm:flex-row gap-3">
+        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#007A36] hover:bg-[#00632b] text-white px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-md hover:-translate-y-0.5">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Xác nhận thu hoạch &amp; Kích hoạt mở bán
+        </button>
+        <a href="{% url 'farm:batches' %}" class="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-primary px-5 py-3 rounded-full text-sm font-semibold transition-all duration-300">
+          Quay lại
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Initialize Lucide Icons
+  lucide.createIcons();
+</script>
+{% endblock %}

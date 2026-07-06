@@ -1,0 +1,901 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Verdant - Nông Sản Sạch Cao Cấp{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Category pills ── */
+    .category-container {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(0, 100, 50, 0.1);
+    }
+    .category-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 4px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.3s;
+      border-bottom: 2px solid transparent;
+      color: rgb(110, 120, 110);
+      background: transparent;
+      border-radius: 0;
+    }
+    .category-pill:hover { color: #1A3020; }
+    .category-pill.active {
+      color: #007A36;
+      border-bottom-color: #007A36;
+      font-weight: 600;
+    }
+
+    /* ── Hero background ── */
+    .hero-bg {
+      background: linear-gradient(165deg, #ffffff 0%, #F4F9F1 40%, #E4F2DB 100%);
+      position: relative;
+    }
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -80px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(0,122,54,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -40px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(245,163,0,0.05) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* ── Entrance animations ── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-in {
+      opacity: 0;
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-in-scale {
+      opacity: 0;
+      animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-float-in {
+      opacity: 0;
+      animation: floatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-100 { animation-delay: 100ms; }
+    .delay-200 { animation-delay: 200ms; }
+    .delay-300 { animation-delay: 300ms; }
+    .delay-400 { animation-delay: 400ms; }
+    .delay-500 { animation-delay: 500ms; }
+    .delay-600 { animation-delay: 600ms; }
+    .delay-700 { animation-delay: 700ms; }
+
+    /* ── Floating card gentle hover ── */
+    .float-card {
+      transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .float-card:hover {
+      box-shadow: 0 12px 32px -8px rgba(0, 100, 50, 0.12);
+      transform: translateY(-2px);
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .animate-in,
+      .animate-in-scale,
+      .animate-float-in {
+        opacity: 1;
+        animation: none;
+        transform: none;
+      }
+      .float-card:hover {
+        transform: none;
+      }
+    }
+    /* ── Value Propositions repositioning and styling ── */
+    main {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    main > .hero-bg { order: 1 !important; }
+    main > .bg-primary { order: 2 !important; }
+    main > #san-pham { order: 3 !important; }
+    main > #ve-chung-toi { order: 4 !important; }
+    main > section:has(div.bg-primary) { order: 5 !important; }
+    main > #nong-trai { order: 6 !important; }
+    main > section.bg-card { order: 7 !important; }
+    main > #kien-thuc { order: 8 !important; }
+
+    #ve-chung-toi {
+      background-color: #ffffff !important;
+      border-top: 1px solid rgba(0, 100, 50, 0.08);
+      border-bottom: 1px solid rgba(0, 100, 50, 0.08);
+    }
+    #ve-chung-toi .grid-cols-2 > div {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    #ve-chung-toi .grid-cols-2 > div:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px -5px rgba(0, 100, 50, 0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── HERO SECTION ── -->
+<section class="hero-bg relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            
+            <!-- Left Copy -->
+            <div class="space-y-7">
+                <div class="animate-in inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-primary text-xs font-semibold px-4 py-2 rounded-full border border-primary/10 shadow-sm">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    Nông sản sạch · Giao tận nơi toàn quốc
+                </div>
+                <h1 class="animate-in delay-100 text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground leading-[1.15] font-serif" style="text-wrap: balance">
+                    Nông Sản Sạch <br>
+                    <span class="text-primary">Từ Nhà Cung Cấp</span> <br>
+                    Đến Gia Đình
+                </h1>
+                <p class="animate-in delay-200 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg" style="text-wrap: pretty">
+                    Kết nối trực tiếp với các nhà cung cấp đạt chuẩn VietGAP &amp; hữu cơ trên khắp Việt Nam. Tươi sạch mỗi ngày, giao nhanh tận nhà.
+                </p>
+                <div class="animate-in delay-300 flex flex-wrap gap-3">
+                    <a href="#san-pham" class="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-7 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-lg shadow-primary/25 hover:-translate-y-0.5">
+                        Mua Ngay
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                    <a href="#nong-trai" class="inline-flex items-center gap-2 bg-white text-primary border border-primary/15 px-7 py-3.5 rounded-full font-semibold text-sm hover:bg-secondary transition-all duration-300">
+                        Xem Nhà Cung Cấp
+                    </a>
+                </div>
+                <!-- Stats -->
+                <div class="animate-in delay-400 flex gap-10 pt-4 border-t border-border/60">
+                    <div>
+                        <div class="text-3xl font-bold text-primary font-serif">{{ total_farms|default:0 }}</div>
+                        <div class="text-sm text-muted-foreground mt-0.5">Nhà cung cấp</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-primary font-serif">{{ total_products|default:0 }}</div>
+                        <div class="text-sm text-muted-foreground mt-0.5">Sản phẩm</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-primary font-serif">{{ total_customers|default:0 }}</div>
+                        <div class="text-sm text-muted-foreground mt-0.5">Khách hàng</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Image Collage -->
+            <div class="animate-in-scale delay-200 relative hidden lg:block h-[500px]">
+                <img
+                    src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=700&h=500&fit=crop&auto=format"
+                    alt="Rau củ tươi từ nhà cung cấp"
+                    class="absolute inset-0 w-full h-full object-cover rounded-[28px] shadow-2xl shadow-primary/10"
+                />
+                <!-- Subtle overlay gradient for depth -->
+                <div class="absolute inset-0 rounded-[28px] bg-gradient-to-t from-black/8 to-transparent pointer-events-none"></div>
+                
+                <!-- Floating cards -->
+                <div class="animate-float-in delay-500 float-card absolute -bottom-5 -left-6 bg-white rounded-2xl p-3.5 shadow-xl flex items-center gap-3 w-52 border border-border/60">
+                    <div class="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center text-xl shrink-0">🥦</div>
+                    <div>
+                        <div class="text-sm font-bold text-foreground">Rau hữu cơ</div>
+                        <div class="text-xs text-muted-foreground">Vừa thu hoạch sáng nay</div>
+                    </div>
+                </div>
+                <div class="animate-float-in delay-600 float-card absolute -top-4 -right-4 bg-white rounded-2xl p-3.5 shadow-xl flex items-center gap-3 border border-border/60">
+                    <div class="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center">
+                        <i data-lucide="check" class="w-4 h-4 text-primary"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-primary">VietGAP</div>
+                        <div class="text-xs text-muted-foreground">Chứng nhận</div>
+                    </div>
+                </div>
+                <div class="animate-float-in delay-700 float-card absolute top-1/2 -right-6 -translate-y-1/2 bg-accent rounded-2xl px-4 py-2.5 shadow-lg">
+                    <div class="text-sm font-bold text-white">Giao trong 4h</div>
+                    <div class="text-xs text-white/80">Nội thành HCM &amp; HN</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decorative wave -->
+    <div class="absolute bottom-0 left-0 right-0 h-10 bg-background" style="clip-path: ellipse(55% 100% at 50% 100%)"></div>
+</section>
+
+<!-- ── TRUST MARQUEE STRIP ── -->
+<div class="bg-primary overflow-hidden py-3">
+    <div class="flex gap-12 text-white/90 text-sm font-medium whitespace-nowrap animate-marquee">
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> 100% Tươi Sạch</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> VietGAP Chứng Nhận</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Hữu Cơ Xác Nhận</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Giao Trong Ngày</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Không Chất Bảo Quản</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Trực Tiếp Từ Nhà Cung Cấp</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> GlobalGAP Đạt Chuẩn</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Kiểm Định VSATTP</span>
+        <!-- Duplicate for loop seamless transition -->
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> 100% Tươi Sạch</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> VietGAP Chứng Nhận</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Hữu Cơ Xác Nhận</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Giao Trong Ngày</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Không Chất Bảo Quản</span>
+        <span class="flex items-center gap-2"><i data-lucide="leaf" class="w-3.5 h-3.5 opacity-70"></i> Trực Tiếp Từ Nhà Cung Cấp</span>
+    </div>
+</div>
+<style>
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+        display: flex;
+        width: max-content;
+        animation: marquee 30s linear infinite;
+    }
+</style>
+
+<!-- ── VALUE PROPOSITIONS ── -->
+<section id="ve-chung-toi" class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-card border border-border rounded-2xl p-6 flex flex-col items-start gap-3 transition">
+                <div class="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-primary">
+                    <i data-lucide="truck" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-base text-foreground">Giao Trong Ngày</div>
+                    <div class="text-sm text-muted-foreground mt-0.5 leading-relaxed">Nội thành HCM & Hà Nội trước 18h hàng ngày</div>
+                </div>
+            </div>
+            <div class="bg-card border border-border rounded-2xl p-6 flex flex-col items-start gap-3 transition">
+                <div class="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-primary">
+                    <i data-lucide="leaf" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-base text-foreground">100% Hữu Cơ</div>
+                    <div class="text-sm text-muted-foreground mt-0.5 leading-relaxed">Không thuốc trừ sâu hay chất bảo quản hóa học</div>
+                </div>
+            </div>
+            <div class="bg-card border border-border rounded-2xl p-6 flex flex-col items-start gap-3 transition">
+                <div class="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-primary">
+                    <i data-lucide="shield" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-base text-foreground">Hoàn Tiền 100%</div>
+                    <div class="text-sm text-muted-foreground mt-0.5 leading-relaxed">Nếu sản phẩm không đạt chất lượng cam kết</div>
+                </div>
+            </div>
+            <div class="bg-card border border-border rounded-2xl p-6 flex flex-col items-start gap-3 transition">
+                <div class="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center text-primary">
+                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="font-semibold text-base text-foreground">Trực Tiếp Từ Vườn</div>
+                    <div class="text-sm text-muted-foreground mt-0.5 leading-relaxed">Truy xuất nguồn gốc rõ ràng từng lô hàng</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── PRODUCTS SECTION ── -->
+<section id="san-pham" class="bg-background py-12 border-t border-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-serif">Sản Phẩm Nổi Bật</h2>
+            </div>
+        </div>
+
+        <!-- Category pills -->
+        <!-- Category pills -->
+        <div class="category-container scrollbar-hide">
+          <button onclick="filterCategory('all', this)" class="category-pill active">
+            Tất cả
+          </button>
+          {% for category in categories %}
+            <button onclick="filterCategory('{{ category.slug }}', this)" class="category-pill">
+              {{ category.name }}
+            </button>
+          {% endfor %}
+        </div>
+
+        <!-- Product Grid -->
+        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6">
+            {% for product in products %}
+                <div
+                    class="product-card group bg-card border border-border rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
+                    data-category="{{ product.category.slug }}"
+                    data-name="{{ product.name|lower }} {{ product.origin|lower }}"
+                >
+                    <!-- Image and Badges -->
+                    <div class="relative aspect-square bg-muted overflow-hidden">
+                        <img
+                            src="{{ product.image_url }}"
+                            alt="{{ product.name }}"
+                            class="w-full h-full object-cover transition-all duration-300"
+                        />
+                        {% if user.is_authenticated %}
+                          <a href="{% url 'toggle-favorite' product.id %}" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 shadow-sm flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition {% if product.id in favorited_product_ids %}text-red-500{% else %}text-muted-foreground{% endif %}">
+                            <i data-lucide="heart" class="w-4 h-4 {% if product.id in favorited_product_ids %}fill-red-500{% endif %}"></i>
+                          </a>
+                        {% endif %}
+                        {% if product.badge %}
+                            <span class="absolute top-2.5 left-2.5 text-xs font-bold px-2.5 py-1 rounded-full 
+                                {% if product.badge == 'Organic' %}bg-emerald-100 text-emerald-700
+                                {% elif product.badge == 'Bán chạy' %}bg-red-100 text-red-700
+                                {% elif product.badge == 'VietGAP' %}bg-blue-100 text-blue-700
+                                {% elif product.badge == 'Local' %}bg-amber-100 text-amber-700
+                                {% elif product.badge == 'Thuần chay' %}bg-teal-100 text-teal-700
+                                {% elif product.badge == 'Non-GMO' %}bg-violet-100 text-violet-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}"
+                            >
+                                {{ product.badge }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="p-4 space-y-2.5">
+                        <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <i data-lucide="map-pin" class="w-3 h-3"></i>
+                            {{ product.origin }}
+                        </div>
+                        <h3 class="font-semibold text-[15px] leading-tight text-foreground truncate">{{ product.name }}</h3>
+                        <div class="flex items-center gap-1">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+                            <span class="text-sm font-medium">{{ product.rating }}</span>
+                            <span class="text-xs text-muted-foreground">({{ product.reviews_count }})</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                            <div>
+                                <span class="font-bold text-primary text-base">{{ product.price|intcomma }}đ</span>
+                                <span class="text-xs text-muted-foreground">/{{ product.unit }}</span>
+                            </div>
+                            <button onclick="addToCart({{ product.id|stringformat:"d" }}, '{{ product.name|escapejs }}', {{ product.price|stringformat:"d" }}, '{{ product.image_url|escapejs }}', '{{ product.unit|escapejs }}')" class="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white px-3.5 py-2 rounded-full text-xs font-semibold transition">
+                                <i data-lucide="shopping-cart" class="w-3 h-3"></i> Thêm
+                            </button>
+                        </div>
+                        {% if product.active_batch %}
+                            <div class="border-t border-dashed border-border pt-2 text-[11px] text-muted-foreground flex justify-between">
+                                <span>Lô: <a href="/products/trace/{{ product.active_batch.batch_number }}/" class="text-primary hover:underline font-mono font-semibold" title="Nhấp để truy xuất nguồn gốc Blockchain">{{ product.active_batch.batch_number }}</a></span>
+                                <span>Hạn: {{ product.active_batch.harvest_date|date:"d/m/Y" }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination Products Container -->
+        <div id="products-pagination-container" class="flex items-center justify-center gap-2.5 mt-12 hidden">
+            <!-- Dynamically populated via JS -->
+        </div>
+        
+        <div id="no-products-msg" class="text-center py-16 text-muted-foreground hidden">
+            Không tìm thấy sản phẩm nào trong danh mục hoặc từ khóa này.
+        </div>
+        
+    </div>
+</section>
+
+
+<!-- ── FARM STORIES SECTION ── -->
+<section id="nong-trai" class="bg-neutral-bg py-20 relative overflow-hidden">
+    <!-- Decorative background elements -->
+    <div class="absolute left-0 bottom-0 text-primary/5 -translate-x-12 translate-y-12 w-64 h-64 pointer-events-none select-none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-full h-full"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        <!-- Header with Slider Controls -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div class="text-left">
+                <span class="text-xs font-bold text-primary uppercase tracking-widest bg-secondary px-3 py-1.5 rounded-full">Bản sắc chân thực</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-serif mt-3">Hành Trình Từ Nhà Cung Cấp</h2>
+                <p class="text-base text-muted-foreground mt-2 max-w-xl">Những câu chuyện chân thực về nguồn gốc nông sản và tâm huyết của người nông dân Việt.</p>
+            </div>
+            <!-- Slider Controls -->
+            <div class="flex items-center gap-2.5 self-start md:self-end">
+                <button onclick="scrollFarmSlider(-1)" class="w-10 h-10 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-primary hover:text-white transition duration-300 shadow-sm" aria-label="Slide trái">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <button onclick="scrollFarmSlider(1)" class="w-10 h-10 rounded-full border border-border bg-white flex items-center justify-center text-foreground hover:bg-primary hover:text-white transition duration-300 shadow-sm" aria-label="Slide phải">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Slider Track -->
+        <div id="farm-slider-track" class="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 scrollbar-none">
+            {% for farm in farms %}
+                <div class="w-[85vw] sm:w-[360px] shrink-0 snap-start bg-card border border-border p-4 rounded-[32px] hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                    <!-- Image -->
+                    <div class="aspect-[16/10] rounded-[24px] overflow-hidden relative mb-5">
+                        <img src="{{ farm.image_url }}" alt="{{ farm.name }}" class="w-full h-full object-cover">
+                        <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-primary text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="map-pin" class="w-3 h-3"></i>
+                            {{ farm.province|default:farm.region }}
+                        </span>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="px-2 flex-grow flex flex-col justify-between space-y-3">
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-lg font-serif text-foreground group-hover:text-primary transition-colors leading-snug">{{ farm.name }}</h3>
+                            <p class="text-sm text-muted-foreground leading-relaxed line-clamp-3">{{ farm.description }}</p>
+                        </div>
+                        
+                        <!-- Contact Details matching register.html -->
+                        <div class="py-2.5 px-3 bg-secondary/30 rounded-xl text-xs text-foreground/80 space-y-1">
+                            <div><strong>Mã số thuế:</strong> {{ farm.tax_code|default:"Chưa cập nhật" }}</div>
+                            <div><strong>Điện thoại:</strong> {{ farm.phone|default:"Chưa cập nhật" }}</div>
+                            <div><strong>Email:</strong> {{ farm.email|default:"Chưa cập nhật" }}</div>
+                        </div>
+                        
+                        <div class="pt-3 border-t border-border/60">
+                            <button onclick="openFarmModal('{{ farm.name }}', '{{ farm.province|default:farm.region }}', '{{ farm.description|escapejs }}', '{{ farm.image_url }}', '{{ farm.tax_code|escapejs }}', '{{ farm.phone|escapejs }}', '{{ farm.email|escapejs }}')" class="w-full flex items-center justify-between text-sm font-bold text-primary hover:text-primary-hover group/btn">
+                                <span>Xem hành trình chi tiết</span>
+                                <i data-lucide="arrow-up-right" class="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── CERTIFICATIONS ── -->
+<section class="bg-card border-y border-border py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold font-serif text-foreground">Chứng Nhận Chất Lượng</h2>
+            <p class="text-sm text-muted-foreground mt-2">Verdant hợp tác với các nhà cung cấp đạt tiêu chuẩn kiểm định nghiêm ngặt</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-5">
+            
+            <div class="flex flex-col items-center text-center p-5 rounded-2xl bg-background border border-border gap-3 hover:shadow-sm transition-shadow">
+                <i data-lucide="award" class="w-8 h-8 text-primary"></i>
+                <div>
+                    <div class="font-bold text-primary text-base">VietGAP</div>
+                    <div class="text-sm text-muted-foreground mt-1">Thực hành nông nghiệp tốt tại VN</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center text-center p-5 rounded-2xl bg-background border border-border gap-3 hover:shadow-sm transition-shadow">
+                <i data-lucide="globe" class="w-8 h-8 text-primary"></i>
+                <div>
+                    <div class="font-bold text-primary text-base">GlobalGAP</div>
+                    <div class="text-sm text-muted-foreground mt-1">Tiêu chuẩn nông nghiệp quốc tế</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center text-center p-5 rounded-2xl bg-background border border-border gap-3 hover:shadow-sm transition-shadow">
+                <i data-lucide="sprout" class="w-8 h-8 text-primary"></i>
+                <div>
+                    <div class="font-bold text-primary text-base">Organic VN</div>
+                    <div class="text-sm text-muted-foreground mt-1">Chứng nhận hữu cơ uy tín</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center text-center p-5 rounded-2xl bg-background border border-border gap-3 hover:shadow-sm transition-shadow">
+                <i data-lucide="shield-check" class="w-8 h-8 text-primary"></i>
+                <div>
+                    <div class="font-bold text-primary text-base">VSATTP</div>
+                    <div class="text-sm text-muted-foreground mt-1">An toàn vệ sinh thực phẩm</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ── KNOWLEDGE BLOG ── -->
+<section id="kien-thuc" class="bg-background py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <h2 class="text-3xl sm:text-4xl font-bold text-foreground font-serif">Kiến Thức Nông Sản</h2>
+            </div>
+        </div>
+        
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for blog in blogs %}
+                <article onclick="openBlogModal('{{ blog.title|escapejs }}', '{{ blog.category.name|escapejs }}', '{{ blog.published_date|date:"d/m/Y" }}', '{{ blog.content|escapejs }}', '{{ blog.image_url }}')" class="blog-card group bg-card border border-border rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300 shadow-sm cursor-pointer">
+                    <div class="aspect-[16/10] bg-muted overflow-hidden">
+                        <img src="{{ blog.image_url }}" alt="{{ blog.title }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-5 space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-primary bg-secondary px-2.5 py-1 rounded-full">{{ blog.category.name }}</span>
+                            <span class="text-xs text-muted-foreground">{{ blog.published_date|date:"d/m/Y" }}</span>
+                        </div>
+                        <h3 class="font-semibold text-base leading-snug group-hover:text-primary transition line-clamp-2 text-foreground">{{ blog.title }}</h3>
+                        <p class="text-sm text-muted-foreground line-clamp-2">{{ blog.summary }}</p>
+                        <div class="flex items-center gap-1.5 text-sm text-primary font-medium pt-1">
+                            Đọc bài viết <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+        
+        <!-- Load More Blogs Button -->
+        <div id="load-more-blogs-container" class="text-center mt-10 hidden">
+            <button onclick="showAllBlogs()" class="inline-flex items-center gap-2 bg-secondary text-primary hover:bg-primary hover:text-white px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-sm">
+                Xem thêm bài viết
+                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Farm Story Modal -->
+<div id="farm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col scale-95 transition-transform duration-300">
+        <!-- Close Button -->
+        <button onclick="closeFarmModal()" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <!-- Modal Image -->
+        <div class="w-full aspect-video bg-muted relative overflow-hidden">
+            <img id="modal-farm-img" src="" alt="" class="w-full h-full object-cover">
+        </div>
+        <!-- Modal Content -->
+        <div class="p-8 space-y-5">
+            <div class="flex items-center gap-2 text-primary font-medium text-xs">
+                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                <span id="modal-farm-region"></span>
+            </div>
+            <h3 id="modal-farm-name" class="font-bold text-2xl sm:text-3xl font-serif text-foreground"></h3>
+            <p id="modal-farm-desc" class="text-sm sm:text-base text-muted-foreground leading-relaxed"></p>
+            
+            <!-- Contact Details -->
+            <div id="modal-farm-details-box" class="py-3 px-4 bg-secondary/30 rounded-2xl text-sm text-foreground/80 space-y-1.5 hidden">
+                <div><strong>Mã số thuế:</strong> <span id="modal-farm-tax-code"></span></div>
+                <div><strong>Số điện thoại liên hệ:</strong> <span id="modal-farm-phone"></span></div>
+                <div><strong>Email liên hệ:</strong> <span id="modal-farm-email"></span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Blog Detail Modal -->
+<div id="blog-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative flex flex-col scale-95 transition-transform duration-300">
+        <!-- Close Button -->
+        <button onclick="closeBlogModal()" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <!-- Modal Image -->
+        <div class="w-full aspect-[21/9] bg-muted relative overflow-hidden shrink-0">
+            <img id="modal-blog-img" src="" alt="" class="w-full h-full object-cover">
+        </div>
+        <!-- Modal Content -->
+        <div class="p-8 space-y-5">
+            <div class="flex items-center gap-4 text-xs">
+                <span id="modal-blog-category" class="font-bold text-primary bg-secondary px-3 py-1 rounded-full"></span>
+                <span id="modal-blog-date" class="text-muted-foreground"></span>
+            </div>
+            <h3 id="modal-blog-title" class="font-bold text-2xl sm:text-3xl font-serif text-foreground leading-snug"></h3>
+            <div class="w-16 h-0.5 bg-primary/20 rounded-full"></div>
+            <div id="modal-blog-content" class="prose max-w-none text-sm sm:text-base text-muted-foreground leading-relaxed space-y-4"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JS Category & Search filter logic
+    let activeCategory = 'all';
+    let searchQuery = '';
+    let currentPage = 1;
+    const itemsPerPage = 8;
+    let showAllBlogsState = false;
+
+    // Handle search query from Django URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlQ = urlParams.get('q');
+    if (urlQ) {
+        searchQuery = urlQ.toLowerCase();
+    }
+    const urlCat = urlParams.get('category');
+    if (urlCat) {
+        activeCategory = urlCat;
+    }
+
+    function filterCategory(catSlug, buttonElement) {
+        activeCategory = catSlug;
+        currentPage = 1; // Reset page to 1 on filter change
+        
+        // Update active class on buttons
+        const pills = document.querySelectorAll('.category-pill');
+        pills.forEach(pill => {
+            pill.classList.remove('active');
+        });
+        
+        if (buttonElement) {
+            buttonElement.classList.add('active');
+        } else {
+            // Find the button with this slug and add active classes
+            pills.forEach(pill => {
+                if (pill.getAttribute('onclick').includes(catSlug)) {
+                    pill.classList.add('active');
+                }
+            });
+        }
+        
+        applyFilters();
+    }
+
+    function scrollToProducts() {
+        const grid = document.getElementById('product-grid');
+        if (grid) {
+            grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function renderPagination(totalPages) {
+        const container = document.getElementById('products-pagination-container');
+        if (!container) return;
+        
+        if (totalPages <= 1) {
+            container.classList.add('hidden');
+            return;
+        }
+        
+        container.classList.remove('hidden');
+        container.innerHTML = '';
+        
+        // Prev button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `w-10 h-10 rounded-full flex items-center justify-center border text-sm font-semibold transition-all duration-300 ${currentPage === 1 ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-border text-foreground hover:bg-secondary hover:text-primary hover:border-primary'}`;
+        prevBtn.innerHTML = '<i data-lucide="chevron-left" class="w-4 h-4"></i>';
+        if (currentPage > 1) {
+            prevBtn.onclick = () => {
+                currentPage--;
+                applyFilters();
+                scrollToProducts();
+            };
+        }
+        container.appendChild(prevBtn);
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            const pageBtn = document.createElement('button');
+            const isActive = i === currentPage;
+            pageBtn.className = `w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${isActive ? 'bg-primary text-white shadow-sm' : 'border border-border text-foreground hover:bg-secondary hover:text-primary hover:border-primary'}`;
+            pageBtn.textContent = i;
+            pageBtn.onclick = () => {
+                currentPage = i;
+                applyFilters();
+                scrollToProducts();
+            };
+            container.appendChild(pageBtn);
+        }
+        
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `w-10 h-10 rounded-full flex items-center justify-center border text-sm font-semibold transition-all duration-300 ${currentPage === totalPages ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-border text-foreground hover:bg-secondary hover:text-primary hover:border-primary'}`;
+        nextBtn.innerHTML = '<i data-lucide="chevron-right" class="w-4 h-4"></i>';
+        if (currentPage < totalPages) {
+            nextBtn.onclick = () => {
+                currentPage++;
+                applyFilters();
+                scrollToProducts();
+            };
+        }
+        container.appendChild(nextBtn);
+        
+        // Re-initialize lucide icons inside the pagination container
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    function applyFilters() {
+        const cards = document.querySelectorAll('.product-card');
+        const msg = document.getElementById('no-products-msg');
+        let visibleCount = 0;
+        let matchedCards = [];
+
+        cards.forEach(card => {
+            const cat = card.getAttribute('data-category');
+            const name = card.getAttribute('data-name');
+
+            const matchCat = (activeCategory === 'all' || cat === activeCategory);
+            const matchSearch = (searchQuery === '' || name.includes(searchQuery));
+
+            if (matchCat && matchSearch) {
+                matchedCards.push(card);
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        // Limit display to current page items
+        const totalPages = Math.ceil(matchedCards.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = currentPage * itemsPerPage;
+
+        matchedCards.forEach((card, index) => {
+            if (index >= startIndex && index < endIndex) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        // Render pagination controls
+        renderPagination(totalPages);
+
+        if (visibleCount === 0) {
+            if (msg) msg.classList.remove('hidden');
+        } else {
+            if (msg) msg.classList.add('hidden');
+        }
+    }
+
+    function applyBlogFilters() {
+        const cards = document.querySelectorAll('.blog-card');
+        const loadMoreBtn = document.getElementById('load-more-blogs-container');
+        let visibleCount = 0;
+
+        cards.forEach((card, index) => {
+            if (showAllBlogsState || index < 3) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        if (loadMoreBtn) {
+            if (cards.length > 3 && !showAllBlogsState) {
+                loadMoreBtn.classList.remove('hidden');
+            } else {
+                loadMoreBtn.classList.add('hidden');
+            }
+        }
+    }
+
+    function showAllBlogs() {
+        showAllBlogsState = true;
+        applyBlogFilters();
+    }
+
+    // Set initial filters on load
+    document.addEventListener('DOMContentLoaded', () => {
+        applyFilters();
+        applyBlogFilters();
+        if (activeCategory !== 'all' || searchQuery !== '') {
+            filterCategory(activeCategory);
+        }
+    });
+
+    // Farm Modal Control Functions
+    function openFarmModal(name, region, description, imgUrl, taxCode, phone, email) {
+        document.getElementById('modal-farm-img').src = imgUrl;
+        document.getElementById('modal-farm-img').alt = name;
+        document.getElementById('modal-farm-region').innerText = region;
+        document.getElementById('modal-farm-name').innerText = name;
+        document.getElementById('modal-farm-desc').innerText = description;
+        
+        const detailsBox = document.getElementById('modal-farm-details-box');
+        if (taxCode || phone || email) {
+            document.getElementById('modal-farm-tax-code').innerText = taxCode || 'Chưa cập nhật';
+            document.getElementById('modal-farm-phone').innerText = phone || 'Chưa cập nhật';
+            document.getElementById('modal-farm-email').innerText = email || 'Chưa cập nhật';
+            detailsBox.classList.remove('hidden');
+        } else {
+            detailsBox.classList.add('hidden');
+        }
+        
+        const modal = document.getElementById('farm-modal');
+        modal.classList.remove('hidden');
+        // Trigger reflow/animation
+        setTimeout(() => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+        
+        // Re-init close button icon inside modal
+        lucide.createIcons();
+    }
+
+    function closeFarmModal() {
+        const modal = document.getElementById('farm-modal');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function scrollFarmSlider(direction) {
+        const track = document.getElementById('farm-slider-track');
+        if (track) {
+            const card = track.querySelector('div');
+            if (card) {
+                const cardWidth = card.offsetWidth + 24; // Card width + gap
+                track.scrollBy({
+                    left: direction * cardWidth,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }
+
+    // Blog Modal Control Functions
+    function openBlogModal(title, category, date, content, imgUrl) {
+        document.getElementById('modal-blog-img').src = imgUrl;
+        document.getElementById('modal-blog-img').alt = title;
+        document.getElementById('modal-blog-category').innerText = category;
+        document.getElementById('modal-blog-date').innerText = date;
+        document.getElementById('modal-blog-title').innerText = title;
+        document.getElementById('modal-blog-content').innerHTML = content;
+        
+        const modal = document.getElementById('blog-modal');
+        modal.classList.remove('hidden');
+        // Trigger reflow/animation
+        setTimeout(() => {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+        
+        // Re-init close button icon inside modal
+        lucide.createIcons();
+    }
+
+    function closeBlogModal() {
+        const modal = document.getElementById('blog-modal');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Close modals on escape key
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeFarmModal();
+            closeBlogModal();
+        }
+    });
+</script>
+{% endblock %}

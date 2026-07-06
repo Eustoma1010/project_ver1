@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - Verdant{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-12 px-4 sm:px-6">
+  <!-- Back link -->
+  <div class="mb-6">
+    <a href="{% url 'farm:products' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại danh sách sản phẩm
+    </a>
+  </div>
+
+  <div class="grid lg:grid-cols-12 gap-8 items-start">
+    <!-- Left Column: Form -->
+    <div class="lg:col-span-7 bg-white border border-border p-8 md:p-10 rounded-[24px] shadow-xl">
+      <div class="mb-8 border-b border-border pb-6">
+        <span class="text-xs font-bold text-primary uppercase tracking-widest bg-secondary px-3 py-1.5 rounded-full">{{ farm.name }}</span>
+        <h2 class="text-3xl font-bold font-serif text-foreground mt-3">{{ title }}</h2>
+        <p class="text-sm text-muted-foreground mt-1.5">Điền các thông tin chi tiết dưới đây để đăng sản phẩm nông sản sạch lên gian hàng.</p>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="space-y-5">
+        {% csrf_token %}
+
+        <!-- Section 1: General Info -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="info" class="w-4 h-4 text-primary"></i> Thông tin chung</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_name">Tên sản phẩm *</label>
+              <input type="text" name="name" id="id_name" required value="{{ form.name.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Ví dụ: Rau cải ngọt hữu cơ">
+              {% for error in form.name.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_category">Danh mục *</label>
+              <select name="category" id="id_category" required class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+                {% for choice in form.category.field.choices %}
+                  <option value="{{ choice.0 }}" {% if form.category.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                {% endfor %}
+              </select>
+              {% for error in form.category.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Pricing & Supply -->
+        <div class="space-y-4 pt-4 border-t border-dashed border-border">
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="tag" class="w-4 h-4 text-primary"></i> Giá bán &amp; Cung ứng</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_price">Giá bán (VND) *</label>
+              <input type="number" name="price" id="id_price" required value="{{ form.price.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Ví dụ: 35000">
+              {% for error in form.price.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_unit">Đơn vị tính *</label>
+              <input type="text" name="unit" id="id_unit" required value="{{ form.unit.value|default:'Kg' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Ví dụ: Kg, Gói, Bó">
+              {% for error in form.unit.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_badge">Nhãn sản phẩm (Badge)</label>
+              <input type="text" name="badge" id="id_badge" value="{{ form.badge.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="Ví dụ: VietGAP, Hữu cơ, Đặc sản, Bán chạy...">
+              {% for error in form.badge.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            
+            <!-- Image Input Selector -->
+            <div class="col-span-2 space-y-3">
+              <label class="block text-xs font-semibold text-foreground/80 mb-1">Hình ảnh sản phẩm *</label>
+              
+              <!-- Tab Toggle buttons -->
+              <div class="flex bg-muted/65 p-1 rounded-xl gap-1 max-w-sm">
+                <button type="button" id="btn-upload-mode" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-foreground transition-all flex items-center justify-center gap-1.5 bg-white shadow-sm">
+                  <i data-lucide="upload-cloud" class="w-3.5 h-3.5 text-primary"></i> Tải tệp lên
+                </button>
+                <button type="button" id="btn-url-mode" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-1.5">
+                  <i data-lucide="link-2" class="w-3.5 h-3.5"></i> Dán liên kết
+                </button>
+              </div>
+
+              <!-- Input Fields -->
+              <div class="mt-2 bg-muted/20 p-4 rounded-2xl border border-dashed border-border/80">
+                <!-- File Input Mode -->
+                <div id="file-input-wrapper" class="space-y-1">
+                  <label class="block text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-1">Chọn tệp từ thiết bị</label>
+                  <input type="file" name="image_file" id="id_image_file" class="w-full text-xs text-foreground/75 file:mr-2 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-secondary file:text-primary hover:file:bg-secondary/80 transition cursor-pointer" accept="image/*">
+                  {% for error in form.image_file.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- URL Input Mode -->
+                <div id="url-input-wrapper" class="space-y-1 hidden">
+                  <label class="block text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-1">Liên kết ảnh URL (HTTPS)</label>
+                  <input type="url" name="image_url" id="id_image_url" value="{{ form.image_url.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="https://example.com/image.jpg">
+                  {% for error in form.image_url.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Description & Blockchain -->
+        <div class="space-y-4 pt-4 border-t border-dashed border-border">
+          <h3 class="text-sm font-bold text-foreground flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-primary"></i> Chi tiết &amp; Truy xuất nguồn gốc</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_description">Mô tả sản phẩm</label>
+              <textarea name="description" id="id_description" rows="3" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">{{ form.description.value|default:'' }}</textarea>
+              {% for error in form.description.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_batch_number">Số lô hàng (Batch #)</label>
+              <input type="text" name="batch_number" id="id_batch_number" value="{{ form.batch_number.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="VD: BATCH-2026-A1">
+              {% for error in form.batch_number.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-foreground/80 mb-1" for="id_harvest_date">Ngày thu hoạch</label>
+              <input type="date" name="harvest_date" id="id_harvest_date" value="{{ form.harvest_date.value|default:'' }}" class="w-full px-4 py-2.5 text-sm rounded-xl bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+              {% for error in form.harvest_date.errors %}<p class="text-xs text-red-600 font-medium mt-1">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="col-span-2 flex items-center gap-2 pt-2">
+              <input type="checkbox" name="available" id="id_available" {% if form.available.value != False %}checked{% endif %} class="text-primary focus:ring-primary rounded border-border">
+              <label class="text-xs font-semibold text-foreground/80 cursor-pointer" for="id_available">Sản phẩm này còn hàng và sẵn sàng giao dịch</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-6">
+          <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-full transition duration-300 shadow-md shadow-primary/20 hover:-translate-y-0.5">
+            Lưu Sản Phẩm
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Live Preview Card matching templates/home.html -->
+    <div class="lg:col-span-5 lg:sticky lg:top-8 bg-card border border-border p-6 rounded-[28px] shadow-lg">
+      <h3 class="text-sm font-bold text-foreground mb-4 flex items-center gap-1.5"><i data-lucide="eye" class="w-4 h-4 text-primary"></i> Bản xem trước sản phẩm</h3>
+      
+      <!-- Product Card Container exactly matching templates/home.html -->
+      <div class="product-card bg-white border border-border rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between max-w-[280px] mx-auto group">
+        <!-- Image & Badge area -->
+        <div class="relative aspect-square bg-muted overflow-hidden">
+          <img class="preview-img w-full h-full object-cover transition-all duration-300" src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=500&fit=crop" alt="Product image preview">
+          <span class="preview-badge-container absolute top-2.5 left-2.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 hidden">
+            <span class="preview-badge">Hữu cơ</span>
+          </span>
+        </div>
+
+        <!-- Info Area -->
+        <div class="p-4 space-y-2.5">
+          <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+            <i data-lucide="map-pin" class="w-3 h-3"></i>
+            <span class="preview-origin">{{ farm.province|default:farm.region }}</span>
+          </div>
+          <h3 class="preview-name font-semibold text-[15px] leading-tight text-foreground truncate">Tên sản phẩm của bạn</h3>
+          
+          <div class="flex items-center gap-1">
+            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+            <span class="text-sm font-medium">5.0</span>
+            <span class="text-xs text-muted-foreground">(0)</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <div>
+              <span class="preview-price font-bold text-primary text-base">0đ</span>
+              <span class="text-xs text-muted-foreground">/<span class="preview-unit">Kg</span></span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-primary text-white px-3.5 py-2 rounded-full text-xs font-semibold">
+              <i data-lucide="shopping-cart" class="w-3 h-3"></i> Thêm
+            </div>
+          </div>
+
+          <!-- Traceability -->
+          <div class="preview-trace-box border-t border-dashed border-border pt-2 text-[11px] text-muted-foreground flex justify-between hidden">
+            <span>Lô: <span class="preview-batch">N/A</span></span>
+            <span>Hạn: <span class="preview-date">N/A</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Dynamic live binding elements
+    const nameInput = document.getElementById('id_name');
+    const priceInput = document.getElementById('id_price');
+    const unitInput = document.getElementById('id_unit');
+    const badgeInput = document.getElementById('id_badge');
+    const urlInput = document.getElementById('id_image_url');
+    const fileInput = document.getElementById('id_image_file');
+    const batchInput = document.getElementById('id_batch_number');
+    const dateInput = document.getElementById('id_harvest_date');
+
+    // Toggle Image Input Mode Logic
+    const btnUploadMode = document.getElementById('btn-upload-mode');
+    const btnUrlMode = document.getElementById('btn-url-mode');
+    const fileWrapper = document.getElementById('file-input-wrapper');
+    const urlWrapper = document.getElementById('url-input-wrapper');
+
+    btnUploadMode.addEventListener('click', () => {
+      // Toggle buttons
+      btnUploadMode.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-foreground transition-all flex items-center justify-center gap-1.5 bg-white shadow-sm";
+      btnUrlMode.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-1.5";
+      
+      // Toggle wrappers
+      fileWrapper.classList.remove('hidden');
+      urlWrapper.classList.add('hidden');
+
+      // Clear non-active input
+      urlInput.value = '';
+    });
+
+    btnUrlMode.addEventListener('click', () => {
+      // Toggle buttons
+      btnUrlMode.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-foreground transition-all flex items-center justify-center gap-1.5 bg-white shadow-sm";
+      btnUploadMode.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-1.5";
+      
+      // Toggle wrappers
+      urlWrapper.classList.remove('hidden');
+      fileWrapper.classList.add('hidden');
+
+      // Clear non-active input
+      fileInput.value = '';
+    });
+
+    // If URL already exists (on Edit), switch to URL mode by default
+    if (urlInput && urlInput.value) {
+      btnUrlMode.click();
+    }
+
+    // Sync functions
+    function updateText(selector, val, defaultText) {
+      document.querySelectorAll(selector).forEach(el => {
+        el.innerText = val || defaultText;
+      });
+    }
+
+    function updateImage(src) {
+      document.querySelectorAll('.preview-img').forEach(img => {
+        img.src = src;
+      });
+    }
+
+    // Initial Sync if values present
+    if (nameInput) updateText('.preview-name', nameInput.value, 'Tên sản phẩm của bạn');
+    if (priceInput) {
+      const val = priceInput.value ? Number(priceInput.value).toLocaleString('vi-VN') + 'đ' : '0đ';
+      updateText('.preview-price', val, '0đ');
+    }
+    if (unitInput) updateText('.preview-unit', unitInput.value, 'Kg');
+    
+    function updateBadgeDisplay(val) {
+      const badgeCont = document.querySelector('.preview-badge-container');
+      const badgeSpan = document.querySelector('.preview-badge');
+      if (val) {
+        badgeSpan.innerText = val;
+        badgeCont.className = "absolute top-2.5 left-2.5 text-xs font-bold px-2.5 py-1 rounded-full";
+        
+        if (val === 'Hữu cơ') {
+          badgeCont.classList.add('bg-emerald-100', 'text-emerald-700');
+        } else if (val === 'VietGAP') {
+          badgeCont.classList.add('bg-blue-100', 'text-blue-700');
+        } else if (val === 'Đặc sản') {
+          badgeCont.classList.add('bg-amber-100', 'text-amber-700');
+        } else if (val === 'Bán chạy') {
+          badgeCont.classList.add('bg-red-100', 'text-red-700');
+        } else {
+          badgeCont.classList.add('bg-violet-100', 'text-violet-700');
+        }
+        badgeCont.classList.remove('hidden');
+      } else {
+        badgeCont.classList.add('hidden');
+      }
+    }
+
+    if (badgeInput) {
+      updateBadgeDisplay(badgeInput.value);
+    }
+    if (urlInput && urlInput.value) {
+      updateImage(urlInput.value);
+    }
+    
+    function syncTraceability() {
+      const traceBox = document.querySelector('.preview-trace-box');
+      const batchVal = batchInput ? batchInput.value : '';
+      const dateVal = dateInput ? dateInput.value : '';
+      if (batchVal || dateVal) {
+        updateText('.preview-batch', batchVal, 'N/A');
+        updateText('.preview-date', dateVal ? formatDate(dateVal) : 'N/A', 'N/A');
+        traceBox.classList.remove('hidden');
+      } else {
+        traceBox.classList.add('hidden');
+      }
+    }
+
+    if (batchInput || dateInput) {
+      syncTraceability();
+    }
+
+    // Event Listeners
+    nameInput.addEventListener('input', (e) => {
+      updateText('.preview-name', e.target.value, 'Tên sản phẩm của bạn');
+    });
+
+    priceInput.addEventListener('input', (e) => {
+      const val = e.target.value ? Number(e.target.value).toLocaleString('vi-VN') + 'đ' : '0đ';
+      updateText('.preview-price', val, '0đ');
+    });
+
+    unitInput.addEventListener('input', (e) => {
+      updateText('.preview-unit', e.target.value, 'Kg');
+    });
+
+    badgeInput.addEventListener('input', (e) => {
+      updateBadgeDisplay(e.target.value);
+    });
+
+    urlInput.addEventListener('input', (e) => {
+      if (e.target.value) {
+        updateImage(e.target.value);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          updateImage(evt.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    if (batchInput) batchInput.addEventListener('input', syncTraceability);
+    if (dateInput) dateInput.addEventListener('change', syncTraceability);
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truy Xuất Nguồn Gốc Blockchain - {{ product.name }}</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Lexend:wght@400;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+            sans: ['Be Vietnam Pro', 'sans-serif'],
+            lexend: ['Lexend', 'sans-serif'],
+            garamond: ['Cormorant Garamond', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 99px;
+    }
+    
+    /* Dynamic active dot pulse animation */
+    .pulse-glow-active::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 9999px;
+      border: 3px solid currentColor;
+      opacity: 0;
+      animation: pulse-glow-anim 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+    @keyframes pulse-glow-anim {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+    
+    /* Glow bubbles (Homepage style, dynamic category colors) */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -120px;
+      right: -80px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba({{ primary_rgb }}, 0.07) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -60px;
+      left: -40px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba({{ accent_rgb }}, 0.05) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Entrance animations ── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .animate-in {
+      opacity: 0;
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-in-scale {
+      opacity: 0;
+      animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-100 { animation-delay: 100ms; }
+    .delay-200 { animation-delay: 200ms; }
+    .delay-300 { animation-delay: 300ms; }
+    .delay-400 { animation-delay: 400ms; }
+    .tx-row {
+      border-top: 1px solid rgba(0, 0, 0, 0.03);
+      margin-top: 4px;
+      padding-top: 6px;
+    }
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+    .m-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-size: clamp(2.25rem, 5vw, 3.25rem);
+      line-height: 1.15;
+    }
+  </style>
+</head>
+
+<body class="font-sans min-h-screen text-[{{ text_color }}] selection:bg-[{{ primary_color }}]/10 selection:text-[{{ primary_color }}] transition-colors duration-500 relative overflow-x-hidden" style="background: linear-gradient(165deg, #ffffff 0%, {{ bg_color }} 45%, {{ secondary_color }} 100%)">
+
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-40 py-3.5 px-6 border-b border-border/60 bg-white/80 backdrop-blur-md transition-all duration-300">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="/" class="flex items-center shrink-0">
+          <img src="/static/images/logo.png" alt="Verdant Logo" class="h-7 w-auto object-contain">
+        </a>
+        <span class="text-slate-300">/</span>
+        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-mono font-bold uppercase">Trace: {{ batch.batch_number|slice:":12" }}...</span>
+      </div>
+      <div class="flex items-center gap-5 text-xs">
+        <a href="/#san-pham" class="text-slate-500 hover:text-slate-900 transition">Sản Phẩm</a>
+        <a href="/#nong-trai" class="text-slate-500 hover:text-slate-900 transition">Nhà Cung Cấp</a>
+        <a href="/" class="font-bold text-[{{ primary_color }}] hover:underline flex items-center gap-1">
+          Cửa hàng chính <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Hero Cover -->
+  <div class="relative w-full h-[320px] md:h-[400px] overflow-hidden">
+    <!-- Background Gradient cao cấp -->
+    <div class="absolute inset-0 bg-gradient-to-b from-white to-[{{ bg_color }}]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba({{ primary_rgb }},0.05),transparent)]"></div>
+
+      <div class="absolute inset-0 flex items-center">
+        <div class="max-w-6xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <!-- Cột trái: Văn bản Playfair to bản, đậm nét -->
+          <div class="space-y-4 text-left border-l-2 border-slate-300 pl-5">
+            <span class="text-[9px] uppercase tracking-widest text-[#007A36] font-bold block">Chứng tHỰC chuỗi cung ứng | powered by VERDANT</span>
+            <div class="space-y-2">
+              <h1 class="m-title text-slate-900 leading-tight">
+                {{ product.name }}
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-500 font-medium font-sans">
+                Cung ứng trực tiếp từ <strong class="text-slate-800 font-semibold">{{ product.farm.name }}</strong>
+              </p>
+            </div>
+
+            <div class="inline-flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-md text-[9px] text-slate-600 font-bold">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>VietGAP Certified</span>
+            </div>
+          </div>
+
+          <!-- Cột phải: Trưng bày ảnh dọc có độ xoay nghệ thuật -->
+          <div class="flex justify-center md:justify-end">
+            <div class="prod-img-box w-[200px] h-[260px] md:w-[220px] md:h-[280px] rounded-2xl overflow-hidden border-[4px] border-slate-100 shadow-lg hover:shadow-xl transition duration-500 hover:-rotate-1 hover:scale-102 shrink-0 bg-white">
+              <img src="{% if product.image_url %}{{ product.image_url }}{% else %}{{ theme_banner }}{% endif %}" alt="{{ product.name }}" class="w-full h-full object-cover">
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <!-- Content Grid -->
+  <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Left Column: Product & Farm Credentials -->
+    <div class="lg:col-span-1 space-y-6">
+      
+      <!-- QR code Sharing Box -->
+      <div class="bg-white/80 backdrop-blur-md border border-[{{ primary_color }}]/10 rounded-[28px] p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-sm hover:border-[{{ primary_color }}]/20 transition-all duration-300 flex items-center gap-4 animate-in">
+        <div id="qrcode" class="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center border border-border relative overflow-hidden shrink-0 shadow-inner">
+          <div class="absolute inset-0 flex items-center justify-center qr-spinner text-muted-foreground">
+            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-[{{ primary_color }}]"></i>
+          </div>
+          <img id="qr-img" class="w-full h-full opacity-0 transition-opacity duration-300 relative z-10 p-1" alt="QR Link" onload="this.classList.remove('opacity-0'); document.querySelector('.qr-spinner').remove();">
+        </div>
+        <div class="space-y-1">
+          <h4 class="font-bold text-sm">Quét Truy Xuất Di Động</h4>
+          <p class="text-[11px] text-muted-foreground leading-normal">Khách hàng quét mã QR này trực tiếp trên bao bì sản phẩm vật lý để đối chiếu hành trình.</p>
+        </div>
+      </div>
+
+      <!-- Farm Profile Card -->
+      <div class="bg-white/85 backdrop-blur-md border border-[{{ primary_color }}]/10 rounded-[32px] p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-sm hover:border-[{{ primary_color }}]/20 transition-all duration-300 space-y-4 relative overflow-hidden animate-in delay-100">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[{{ primary_color }}]/5 rounded-bl-[100px] -z-10"></div>
+        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="home" class="w-4 h-4 text-[{{ primary_color }}]"></i> Nguồn Gốc Nhà Vườn
+        </h3>
+        
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-[{{ secondary_color }}] flex items-center justify-center text-[{{ primary_color }}] shrink-0 font-bold text-base">
+              {{ product.farm.name|slice:":1" }}
+            </div>
+            <div>
+              <h4 class="font-bold text-base text-slate-900">{{ product.farm.name }}</h4>
+              <p class="text-xs text-muted-foreground">{{ product.farm.province|default:product.farm.region }}, Việt Nam</p>
+            </div>
+          </div>
+          
+          <p class="text-xs text-muted-foreground leading-relaxed pt-1.5 border-t border-dashed border-border">
+            {{ product.farm.description|default:"Nhà vườn hữu cơ ứng dụng quy trình trồng trọt sinh học cao cấp, cam kết mang đến thực phẩm tươi lành và bảo vệ môi trường sinh thái." }}
+          </p>
+          
+          <div class="pt-3 border-t border-border space-y-2 text-xs">
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Mã số thuế:</span>
+              <strong class="font-semibold text-slate-800 font-mono">{{ product.farm.tax_code|default:"0315482390" }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Số điện thoại:</span>
+              <strong class="font-semibold text-slate-800">{{ product.farm.phone|default:"(+84) 1800 6868" }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Email liên hệ:</span>
+              <strong class="font-semibold text-slate-800">{{ product.farm.email|default:"contact@verdant.vn" }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Specifications -->
+      <div class="bg-white/85 backdrop-blur-md border border-[{{ primary_color }}]/10 rounded-[32px] p-6 shadow-xs hover:-translate-y-0.5 hover:shadow-sm hover:border-[{{ primary_color }}]/20 transition-all duration-300 space-y-4 animate-in delay-200">
+        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="sliders" class="w-4 h-4 text-[{{ primary_color }}]"></i> Thông Số Sinh Trưởng Lô
+        </h3>
+        
+        <div class="space-y-3.5 text-xs">
+          <div class="grid grid-cols-2 gap-3.5">
+            <div class="bg-[{{ bg_color }}] p-3 rounded-xl">
+              <span class="text-[10px] text-muted-foreground block mb-0.5">Quy mô gieo trồng</span>
+              <strong class="text-sm text-slate-800 font-bold">{{ batch.initial_quantity }} {{ product.unit }}</strong>
+            </div>
+            <div class="bg-[{{ bg_color }}] p-3 rounded-xl">
+              <span class="text-[10px] text-muted-foreground block mb-0.5">Còn trong kho</span>
+              <strong class="text-sm text-slate-800 font-bold">{{ batch.remaining_quantity }} {{ product.unit }}</strong>
+            </div>
+          </div>
+          
+          <div class="space-y-2 border-t border-border pt-3">
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Quy trình canh tác:</span>
+              <strong class="text-slate-800 font-semibold">Sinh học VietGAP</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Nguồn nước tưới:</span>
+              <strong class="text-slate-800 font-semibold">Nước ngầm tầng sâu kiểm nghiệm</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Mẫu đất trồng:</span>
+              <strong class="text-slate-800 font-semibold">Đất phù sa bồi tự nhiên</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Phân bón sử dụng:</span>
+              <strong class="text-slate-800 font-semibold">Phân trùn quế sinh học</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">Độ ẩm trung bình:</span>
+              <strong class="text-slate-800 font-semibold">75% - 80%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Center/Right Column: Journey Supply Chain Map -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Verification Badge and Cert Panel -->
+      <div class="bg-gradient-to-r from-emerald-500/10 to-teal-500/5 border border-emerald-500/25 p-6 rounded-[32px] flex items-start gap-4 shadow-sm relative overflow-hidden">
+        <div class="absolute right-0 bottom-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl"></div>
+        <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
+          <i data-lucide="check-square" class="w-6 h-6 animate-pulse"></i>
+        </div>
+        <div class="space-y-2 relative z-10 w-full">
+          <h3 class="font-extrabold text-sm text-emerald-800 uppercase tracking-wider">Chứng nhận số hóa</h3>
+          <p class="text-xs text-emerald-700 leading-relaxed">
+            Hành trình của lô nông sản sạch này đã được lưu giữ bất biến qua các giao dịch điện tử được ký số bảo mật bởi các bên liên quan, hoàn toàn chống gian lận dữ liệu.
+          </p>
+          {% if batch.blockchain_tx_hash %}
+            <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-emerald-500/10 mt-3">
+              <a href="javascript:void(0)" onclick="showTxDetail('{{ batch.blockchain_tx_hash }}')" class="flex items-center gap-1.5 text-[10px] font-mono bg-emerald-200/50 hover:bg-emerald-200/80 text-emerald-900 px-3 py-1.5 rounded-xl border border-emerald-300/30 hover:underline transition shadow-3xs" title="Nhấp xác thực chứng chỉ số trên hệ thống Blockchain">
+                <i data-lucide="key" class="w-3.5 h-3.5 text-emerald-700"></i>
+                <span class="select-all">TxHash: {{ batch.blockchain_tx_hash }}</span>
+              </a>
+              <span class="text-[9px] text-emerald-700 font-bold uppercase tracking-wider flex items-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Đã Ký Số</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Main Journey Supply Chain Timeline -->
+      <div class="bg-white/80 backdrop-blur-md border border-[{{ primary_color }}]/10 rounded-[32px] p-6 sm:p-8 space-y-8 shadow-sm hover:shadow-md hover:border-[{{ primary_color }}]/15 transition-all duration-300 animate-in">
+        <div class="flex items-center justify-between border-b border-border pb-5">
+          <h3 class="text-xl font-bold font-serif flex items-center gap-2.5">
+            <i data-lucide="route" class="w-6 h-6 text-[{{ primary_color }}]"></i> Bản đồ Nhật ký Chuỗi Cung Ứng
+          </h3>
+          <span class="text-[10px] bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">
+            {{ journey.milestones|length }} Cột mốc
+          </span>
+        </div>
+        
+        <div class="relative pl-8 border-l-2 border-[{{ primary_color }}]/15 ml-4.5 space-y-8 py-2">
+          {% for milestone in journey.milestones %}
+            <div class="relative timeline-item {% if forloop.last %}timeline-item-active{% endif %} group">
+              <!-- Dot Indicator -->
+              <span class="absolute -left-[42px] top-1.5 w-6 h-6 rounded-full border-4 border-white bg-[{{ primary_color }}] text-white flex items-center justify-center shadow-md timeline-dot transition duration-300 group-hover:scale-110 {% if forloop.last %}pulse-glow-active{% endif %}">
+                {% if forloop.last %}
+                  <i data-lucide="check" class="w-3 h-3"></i>
+                {% endif %}
+              </span>
+              
+              <div class="bg-[{{ bg_color }}]/40 border border-[{{ primary_color }}]/5 hover:border-[{{ primary_color }}]/15 p-5 rounded-2xl transition-all duration-300 space-y-3.5">
+                <!-- Milestone Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                  <div class="space-y-0.5">
+                    <span class="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Mốc sự kiện {{ forloop.counter }}</span>
+                    <h4 class="font-extrabold text-base text-[{{ text_color }}]">{{ milestone.title }}</h4>
+                  </div>
+                  <span class="inline-flex bg-white border border-[{{ primary_color }}]/10 text-muted-foreground text-[10px] font-bold px-3 py-1.5 rounded-xl shrink-0 self-start sm:self-center shadow-2xs">
+                    {{ milestone.timestamp|date:"d/m/Y H:i" }}
+                  </span>
+                </div>
+                
+                <!-- Description -->
+                <p class="text-xs text-muted-foreground leading-relaxed">{{ milestone.description }}</p>
+                
+                <div class="border border-dashed border-slate-200/80 rounded-xl p-3 bg-slate-50/50 font-mono text-[10px] text-slate-700 space-y-1 mt-3">
+                  <div class="flex justify-between pb-1 border-b border-slate-200/40">
+                    <span class="text-muted-foreground uppercase tracking-wider text-[8px] font-semibold">
+                      {% if category_slug == 'sua' %}Dairy Production Metrics
+                      {% elif category_slug == 'ca-phe' or category_slug == 'tra' %}Roastery & Plantation Metrics
+                      {% else %}chỉ số tăng trưởng nông nghiệp{% endif %}
+                    </span>
+                    <span class="text-[{{ primary_color }}] font-bold">CUNG CẤP BỞI ĐỐI TÁC CỦA VERDANT</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-1 pt-1">
+                    {% if milestone.parameters %}
+                      {% if category_slug == 'sua' %}
+                        <div>Nhiệt độ bảo quản: <strong class="text-slate-900">{{ milestone.parameters.storage_temp|default:"4" }}°C</strong></div>
+                        <div>Độ pH sữa: <strong class="text-slate-900">{{ milestone.parameters.ph_level|default:"6.6" }}</strong></div>
+                        <div>Hàm lượng béo: <strong class="text-slate-900">{{ milestone.parameters.fat_content|default:"3.5" }}%</strong></div>
+                        <div>Tỷ lệ vi sinh: <strong class="text-slate-900">{{ milestone.parameters.bacteria_count|default:"< 10,000" }} CFU/ml</strong></div>
+                      {% elif category_slug == 'ca-phe' or category_slug == 'tra' %}
+                        <div>Độ ẩm hạt: <strong class="text-slate-900">{{ milestone.parameters.moisture|default:"12.5" }}%</strong></div>
+                        <div>Nhiệt độ sấy: <strong class="text-slate-900">{{ milestone.parameters.roast_temp|default:"200" }}°C</strong></div>
+                        <div>Độ cao: <strong class="text-slate-900">{{ milestone.parameters.altitude|default:"1500" }}m</strong></div>
+                        <div>Rang/sấy: <strong class="text-slate-900">{{ milestone.parameters.roast_note|default:"Rang vừa" }}</strong></div>
+                      {% else %}
+                        <div>Nhiệt độ đất: <strong class="text-slate-900">{{ milestone.parameters.soil_temp|default:"25" }}°C</strong></div>
+                        <div>Độ ẩm đất: <strong class="text-slate-900">{{ milestone.parameters.soil_moisture|default:"70" }}%</strong></div>
+                        <div>pH đất: <strong class="text-slate-900">{{ milestone.parameters.ph_level|default:"6.5" }}</strong></div>
+                        <div>Phân bón: <strong class="text-slate-900">{{ milestone.parameters.fertilizer|default:"Hữu cơ sinh học" }}</strong></div>
+                      {% endif %}
+                    {% else %}
+                      <!-- Fallback mock logic for legacy milestones -->
+                      {% if category_slug == 'sua' %}
+                        <div>Nhiệt độ bảo quản: <strong class="text-slate-900">4°C</strong></div>
+                        <div>Độ pH: <strong class="text-slate-900">6.6</strong></div>
+                        <div>Hàm lượng béo: <strong class="text-slate-900">3.5%</strong></div>
+                        <div>Tỷ lệ vi sinh: <strong class="text-slate-900">&lt; 10,000 CFU/ml</strong></div>
+                      {% elif category_slug == 'ca-phe' or category_slug == 'tra' %}
+                        <div>Độ ẩm hạt: <strong class="text-slate-900">12.5%</strong></div>
+                        <div>Nhiệt độ sấy: <strong class="text-slate-900">75°C</strong></div>
+                        <div>Độ cao: <strong class="text-slate-900">1,500m</strong></div>
+                        <div>Rang/sấy: <strong class="text-slate-900">Rang vừa (Medium)</strong></div>
+                      {% else %}
+                        <div>Nhiệt độ đất: <strong class="text-slate-900">{% if "Gieo" in milestone.title or "giống" in milestone.title %}24°C{% elif "Chăm" in milestone.title or "Bón" in milestone.title or "Tưới" in milestone.title %}26°C{% elif "Thu" in milestone.title %}21°C{% else %}23°C{% endif %}</strong></div>
+                        <div>Độ ẩm: <strong class="text-slate-900">{% if "Gieo" in milestone.title or "giống" in milestone.title %}80%{% elif "Chăm" in milestone.title or "Bón" in milestone.title or "Tưới" in milestone.title %}75%{% elif "Thu" in milestone.title %}60%{% else %}70%{% endif %}</strong></div>
+                        <div>pH đất: <strong class="text-slate-900">{% if "Gieo" in milestone.title or "giống" in milestone.title %}6.5{% elif "Chăm" in milestone.title or "Bón" in milestone.title or "Tưới" in milestone.title %}6.8{% elif "Thu" in milestone.title %}6.2{% else %}6.5{% endif %}</strong></div>
+                        <div>Phân bón: <strong class="text-slate-900">{% if "Gieo" in milestone.title or "giống" in milestone.title %}Hữu cơ sinh học{% elif "Chăm" in milestone.title or "Bón" in milestone.title or "Tưới" in milestone.title %}Sinh học đạm cá{% elif "Thu" in milestone.title %}Không bón phân{% else %}Chuẩn organic{% endif %}</strong></div>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+                  <div class="pt-1.5 border-t border-slate-200/40 text-[9.5px] font-sans leading-relaxed text-muted-foreground">
+                    <strong class="font-semibold text-slate-700 font-mono">Ghi chú:</strong> {% if milestone.parameters and milestone.description %}{{ milestone.description }}{% elif "Gieo" in milestone.title or "giống" in milestone.title %}Hạt giống hữu cơ F1 đạt độ đồng đều cao, tỷ lệ nảy mầm đạt 98%.{% elif "Chăm" in milestone.title or "Bón" in milestone.title or "Tưới" in milestone.title %}Đáp ứng đầy đủ dinh dưỡng sinh học hữu cơ và nước ngầm tầng sâu.{% elif "Thu" in milestone.title %}Thu hoạch nông sản vào sáng sớm mát trời, phân loại cơ học tức thì.{% else %}Thông số nhật ký canh tác chuẩn VietGAP.{% endif %}
+                  </div>
+                </div>
+
+                  <div class="m-footer border-t border-dashed border-border/70 pt-3 flex flex-col gap-2 text-[10px]">
+                    <!-- Hàng 1: Tác nhân & Địa chỉ Google Maps -->
+                    <div class="flex items-center justify-between flex-wrap gap-2.5">
+                      <div class="flex items-center gap-2.5 text-slate-700">
+                        <span class="flex items-center gap-1 font-medium bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md">
+                          <i data-lucide="user" class="w-3 h-3 text-[#007A36]"></i>
+                          <span>{{ milestone.actor }}</span>
+                        </span>
+                        <span class="text-slate-300">|</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query={% if milestone.location == 'Tiền Giang' %}10.3606,106.3575{% elif milestone.location == 'Lâm Đồng' %}11.9404,108.4583{% elif milestone.location == 'Đắk Lắk' %}12.6844,108.0494{% else %}{{ milestone.location|urlencode }}{% endif %}" target="_blank" class="hover:text-primary transition-colors flex items-center gap-1 font-semibold text-slate-800" title="Nhấp mở bản đồ Google Maps">
+                          <i data-lucide="map" class="w-3 h-3 text-primary"></i>
+                          <span>{{ milestone.location }}</span>
+                          <span class="text-[9px] text-muted-foreground font-mono font-normal bg-slate-100 px-1.5 py-0.2 rounded">GPS: {% if milestone.location == 'Tiền Giang' %}10.3606, 106.3575{% elif milestone.location == 'Lâm Đồng' %}11.9404, 108.4583{% elif milestone.location == 'Đắk Lắk' %}12.6844, 108.0494{% else %}10.8231, 106.6297{% endif %}</span>
+                        </a>
+                      </div>
+
+                      <a href="https://www.google.com/maps/search/?api=1&query={% if milestone.location == 'Tiền Giang' %}10.3606,106.3575{% elif milestone.location == 'Lâm Đồng' %}11.9404,108.4583{% elif milestone.location == 'Đắk Lắk' %}12.6844,108.0494{% else %}{{ milestone.location|urlencode }}{% endif %}" target="_blank" class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200/80 px-2 py-0.5 rounded font-bold text-slate-600 transition" title="Xem trên Google Maps">
+                        <span>Bản đồ</span> <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                      </a>
+                    </div>
+
+                    <!-- Hàng 2: Mã băm phụ mờ nhẹ -->
+                    {% if milestone.blockchain_tx_hash %}
+                      <div class="tx-row flex items-center justify-between text-[8.5px] text-slate-400">
+                        <span class="flex items-center gap-1">
+                          <i data-lucide="link" class="w-2.5 h-2.5"></i>
+                          <span>Đã xác thực</span>
+                        </span>
+                        <a href="javascript:void(0)" onclick="showTxDetail('{{ milestone.blockchain_tx_hash }}')" class="font-mono hover:text-primary hover:underline truncate max-w-[280px]" title="Nhấp xem chi tiết giao dịch">
+                          Tx: {{ milestone.blockchain_tx_hash }}
+                        </a>
+                      </div>
+                    {% endif %}
+                  </div>
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- Secure Delivery details block -->
+          {% if journey.delivery_hashes %}
+            {% for delivery in journey.delivery_hashes %}
+              <div class="relative timeline-item timeline-item-active group">
+                <span class="absolute -left-[42px] top-1.5 w-6 h-6 rounded-full border-4 border-white bg-blue-500 text-white flex items-center justify-center shadow-md timeline-dot pulse-glow-active">
+                  <i data-lucide="truck" class="w-3 h-3"></i>
+                </span>
+                
+                <div class="bg-blue-50/30 border border-blue-200/50 hover:border-blue-200 p-5 rounded-2xl transition duration-300 space-y-3.5">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                    <div class="space-y-0.5">
+                      <span class="text-[9px] uppercase tracking-widest text-blue-700 font-bold">Mốc vận chuyển cuối</span>
+                      <h4 class="font-extrabold text-base text-blue-900">Xác Nhận Giao Nhận Thành Công</h4>
+                    </div>
+                    <span class="inline-flex bg-blue-100 text-blue-800 text-[10px] font-bold px-3 py-1.5 rounded-xl shrink-0 self-start sm:self-center">
+                      Đơn hàng hoàn tất
+                    </span>
+                  </div>
+                  
+                  <p class="text-xs text-muted-foreground leading-relaxed">
+                    Sản phẩm đã được đơn vị vận chuyển giao tận nơi thành công. Toàn bộ thông tin biên bản giao dịch (Gồm Mã đơn, Tên người nhận, Số điện thoại và Địa chỉ giao vận) đã được ký số hóa băm mật mã học SHA-256 vĩnh viễn trên Blockchain, đảm bảo tính chống chối bỏ.
+                  </p>
+                  
+                  <a href="javascript:void(0)" onclick="showTxDetail('{{ delivery.hash }}')" class="block bg-blue-50 hover:bg-blue-100/70 border border-blue-200/50 p-3.5 rounded-2xl space-y-1 font-mono text-[10px] text-blue-800 break-all shadow-2xs hover:underline transition" title="Nhấp để xác thực biên bản giao nhận trên Blockchain">
+                    <div class="font-bold uppercase tracking-wider text-[8px] text-blue-950 flex items-center gap-1">
+                      <i data-lucide="external-link" class="w-3.5 h-3.5 text-blue-700"></i> Mã băm bảo mật giao dịch (SHA-256 Hash)
+                    </div>
+                    <div class="select-all">{{ delivery.hash }}</div>
+                    <div class="text-[8px] text-blue-600 font-sans italic pt-0.5">(* Nhấp để xác thực giao nhận trên hệ thống Blockchain)</div>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+
+
+      <!-- Smart Contract Spec Card -->
+      <div class="border border-[{{ primary_color }}]/10 rounded-[32px] p-6 bg-white space-y-4 shadow-sm text-xs">
+        <h4 class="font-bold text-sm flex items-center gap-1.5 text-slate-800">
+          <i data-lucide="cpu" class="w-5 h-5 text-[{{ primary_color }}]"></i> Hợp Đồng Thông Minh
+        </h4>
+        <div class="grid sm:grid-cols-2 gap-4 text-muted-foreground">
+          <div class="space-y-1">
+            <span>Địa chỉ hợp đồng thông minh:</span>
+            <p class="font-mono text-[{{ text_color }}] font-semibold break-all bg-slate-50 p-2.5 rounded-xl border border-border">0x5FbDB2315678afecb367f032d93F642f64180aa3</p>
+          </div>
+          <div class="space-y-1">
+            <span>Mạng lưới Blockchain phân bổ:</span>
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-border flex items-center justify-between">
+              <span class="text-[{{ text_color }}] font-semibold flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Hardhat Local (Chain: 1337)
+              </span>
+              <span class="text-[9px] font-bold text-slate-500 font-mono">RPC: 8545</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-border pt-4 text-center text-[10px] text-muted-foreground">
+          <span>Dữ liệu được trích xuất tự động thời gian thực từ mạng lưới Blockchain.</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center py-12 text-xs text-muted-foreground border-t border-[{{ primary_color }}]/5 mt-16 bg-white space-y-1">
+    <p class="font-bold text-slate-700">&copy; 2026 Verdant Co. Nông sản hữu cơ vì sức khỏe gia đình Việt.</p>
+    <p>Hệ thống truy xuất nguồn gốc.</p>
+  </footer>
+
+  <script>
+    // Create QR Code image dynamically using public QR generator
+    const currentUrl = window.location.href;
+    document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentUrl)}`;
+    
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+  </script>
+  <script src="/static/js/blockchain_modal.js"></script>
+
+  <!-- Impeccable Live Helper Script -->
+  <script src="http://localhost:8400/live.js"></script>
+
+</body>
+</html>
