@@ -1,63 +1,35 @@
 # Nhật ký Kiểm thử & Thay đổi Cơ sở dữ liệu (testcase_csdl.md)
 
 Tài liệu này ghi lại toàn bộ các thay đổi về cơ sở dữ liệu, tài khoản kiểm thử, các thao tác reset blockchain và các ca kiểm thử được thực hiện trong hệ thống.
-## 🏢 Cấu hình trường thông tin chuẩn doanh nghiệp (Enterprise Schema Configuration)
 
-Nhằm đảm bảo tính chính xác và tuân thủ các chuẩn mực dữ liệu doanh nghiệp trong nước và quốc tế, các trường thông tin của mô hình `CustomUser` và `Farm` được cấu hình lại với các ràng buộc nghiệp vụ chặt chẽ dưới đây:
-
-### 1. Mô hình Người dùng (`CustomUser`)
-| Tên trường | Kiểu dữ liệu | Ràng buộc nghiệp vụ (Xác thực dữ liệu) | Ý nghĩa / Quy chuẩn |
-| :--- | :--- | :--- | :--- |
-| `username` | `CharField` | Tối thiểu 3 ký tự, chỉ gồm chữ cái và chữ số (`isalnum`). | Tên đăng nhập định danh duy nhất. |
-| `phone_number`| `CharField` | Regex: `^0\d{9,10}$` (độ dài 10 hoặc 11 số, bắt đầu bằng `0`). | Số điện thoại di động/cá nhân hợp lệ tại Việt Nam. |
-| `email` | `EmailField`| Định dạng email quốc tế tiêu chuẩn. | Địa chỉ email của cá nhân đăng ký tài khoản. |
-
-### 2. Mô hình Nhà cung cấp / Nông trại (`Farm`)
-| Tên trường | Kiểu dữ liệu | Ràng buộc nghiệp vụ (Xác thực dữ liệu) | Ý nghĩa / Quy chuẩn |
-| :--- | :--- | :--- | :--- |
-| `name` | `CharField` | Tối thiểu 3 ký tự. Bắt buộc nhập. | Tên pháp nhân / tên thương hiệu doanh nghiệp. |
-| `tax_code` | `CharField` | Regex: `^\d{10}$|^\d{13}$|^\d{10}-\d{3}$` (10 số đối với DN chính, hoặc 13 số đối với chi nhánh/đơn vị trực thuộc). | Mã số thuế doanh nghiệp hợp pháp tại Việt Nam. |
-| `phone` | `CharField` | Regex: `^0\d{9,10}$` (độ dài 10-11 số, bắt đầu bằng `0`). Bắt buộc nhập. | Số điện thoại hotline liên hệ chính thức của doanh nghiệp. |
-| `email` | `EmailField`| Định dạng email doanh nghiệp. Bắt buộc nhập. | Hòm thư điện tử chính thức nhận thông tin giao dịch. |
-| `business_license` | `FileField` | Bắt buộc đính kèm tệp tài liệu/hình ảnh khi đăng ký. | Giấy chứng nhận đăng ký kinh doanh/Giấy chứng nhận cơ sở đủ điều kiện ATVSTP. |
-
-### 3. Các Mô hình Sản phẩm & Giao dịch (`Product`, `Batch`, `Order`, `OrderItem`)
-| Mô hình (Model) | Tên trường (Field) | Ràng buộc nghiệp vụ (Xác thực dữ liệu) | Ý nghĩa / Quy chuẩn |
-| :--- | :--- | :--- | :--- |
-| `Product` | `price` | `MinValueValidator(1000)` (Tối thiểu 1.000đ). | Giá trị bán lẻ thực tế hợp lý tại thị trường Việt Nam. |
-| `Batch` | `initial_quantity` | `MinValueValidator(1)` (Tối thiểu 1 đơn vị giống). | Số lượng giống gieo ban đầu của một lô sản xuất phải lớn hơn 0. |
-| `Batch` | `remaining_quantity` | `MinValueValidator(0)` (Không được phép âm). | Số lượng tồn kho còn lại của lô hàng. |
-| `Order` | `total_price` | `MinValueValidator(0)` (Không được phép âm). | Tổng giá trị đơn hàng thực tế. |
-| `OrderItem` | `quantity` | `MinValueValidator(1)` (Tối thiểu mua 1 sản phẩm). | Số lượng đặt mua cho mỗi dòng sản phẩm. |
-| `OrderItem` | `price` | `MinValueValidator(0)` (Không được phép âm). | Đơn giá sản phẩm tại thời điểm mua. |
-
----
-
-
-Dưới đây là danh sách các tài khoản kiểm thử đã được thiết lập sẵn trong hệ thống với cơ sở dữ liệu sạch:
+## 🔑 Danh sách Tài khoản & Dữ liệu Kiểm thử (Chuẩn Doanh nghiệp)
 
 ### 1. Tài khoản Hệ thống mặc định
-| Vai trò | Tên đăng nhập (Username) | Mật khẩu (Password) | Mô tả |
-| :--- | :--- | :--- | :--- |
-| **Quản trị viên** | `admin` | `admin123` | Có quyền duyệt hồ sơ Nông trại bước 1, xem báo cáo tổng thể. |
-| **Kiểm định viên** | `auditor` | `auditor123` | Có quyền kiểm định Nông trại thực địa (bước 2), thẩm định sản phẩm và xác thực Milestone ghi lên Blockchain. |
-| **Người mua mặc định** | `buyer` | `buyer123` | Tài khoản khách hàng thông thường để mua sắm và theo dõi hành trình. |
 
-### 2. 10 Tài khoản Nhà cung cấp (được khôi phục từ Backup, vai trò hiện tại: `BUYER`)
-*Các tài khoản này được đặt mật khẩu mặc định là `test123`. Họ có vai trò khởi đầu là `BUYER` để có thể tiến hành nộp đơn đăng ký nhà cung cấp/nông trại.*
-
-| STT | Tên đăng nhập (Username) | Mật khẩu (Password) | Vai trò hiện tại |
+| Trường | `admin` | `auditor` | `buyer` |
 | :--- | :--- | :--- | :--- |
-| 1 | `go_cafe_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 2 | `highlands_coffee_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 3 | `organica_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 4 | `koita_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 5 | `mua_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 6 | `sonlanga_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 7 | `health_paradise_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 8 | `coop_finest_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 9 | `vua_gao_owner` | `test123` | BUYER (Chờ đăng ký lại) |
-| 10 | `cat_tuong_owner` | `test123` | BUYER (Chờ đăng ký lại) |
+| **Mật khẩu** | `admin123` | `auditor123` | `buyer123` |
+| **Vai trò** | ADMIN | AUDITOR | BUYER |
+| **Họ** | Hệ Thống | Trần | Nguyễn |
+| **Tên** | Quản Trị | Minh Tuấn | Thu Hà |
+| **Email** | admin@verdant.com | auditor@verdant.com | buyer@verdant.com |
+| **Số điện thoại** | 0901000001 | 0901000002 | 0901000003 |
+| **Địa chỉ** | Trụ sở Verdant Traceability, 123 Nguyễn Huệ, Q.1, TP.HCM | Chi cục QLCL Nông Lâm sản, 135 Pasteur, Q.3, TP.HCM | 456 Lê Văn Sỹ, Q. Phú Nhuận, TP.HCM |
+
+### 2. 10 Tài khoản Nhà cung cấp (vai trò hiện tại: `BUYER`, mật khẩu: `test123`)
+
+| STT | Username | Họ và Tên | Email | Số điện thoại | Địa chỉ |
+| :---: | :--- | :--- | :--- | :--- | :--- |
+| 1 | `go_cafe_owner` | Phạm Minh Đức | contact@gocafe.vn | 0902888123 | 142 Lê Hồng Phong, TP. Buôn Ma Thuột, Đắk Lắk |
+| 2 | `highlands_coffee_owner` | Nguyễn Thái Bình | contact@highlandscoffee.com.vn | 0903777456 | 135/1 Nguyễn Chí Thanh, Quận 5, TP. HCM |
+| 3 | `organica_owner` | Lê Thị Hoài An | info@organica.vn | 0914223344 | 54 Phạm Ngọc Thạch, Quận 3, TP. HCM |
+| 4 | `koita_owner` | Francesco Rossi | import@koita.it | 0909123456 | 12 Thảo Điền, Quận 2, TP. HCM |
+| 5 | `mua_owner` | Trần Thanh Mùa | nongsan@muaorganics.com | 0989555666 | Khe Sanh, Phường 10, TP. Đà Lạt, Lâm Đồng |
+| 6 | `sonlanga_owner` | Ksor H'Yên | contact@sonlanga.com | 0905123987 | 45 Lê Duẩn, TP. Pleiku, Gia Lai |
+| 7 | `health_paradise_owner` | Tan Kah Kee | support@healthparadise.com.my | 0908888999 | Lầu 5, Pearl Plaza, Bình Thạnh, TP. HCM |
+| 8 | `coop_finest_owner` | Nguyễn Văn Hùng | chamsockhachhang@coopfinest.vn | 0913999888 | 199-205 Nguyễn Thái Học, Quận 1, TP. HCM |
+| 9 | `vua_gao_owner` | Võ Quốc Việt | info@vuagaoviet.com | 0918111222 | Lô A1, KCN Tân Đô, Đức Hòa, Long An |
+| 10 | `cat_tuong_owner` | Nguyễn Cát Tường | traicay@cattuongfruit.com | 0903112233 | Ấp Mỹ Lợi, Mỹ Phong, TP. Mỹ Tho, Tiền Giang |
 
 ---
 
