@@ -64,9 +64,29 @@ Tài liệu này ghi lại toàn bộ các thay đổi về cơ sở dữ liệu
 | 9 | **Vua Gạo** | Gạo sạch chuẩn xuất khẩu, KCN Tân Đô, Long An. Vùng nguyên liệu 500ha liên kết. ST25, Jasmine, gạo lứt hữu cơ. HACCP, GlobalGAP. Xay xát: 100 tấn/ngày. |
 | 10 | **Cát Tường** | Trái cây nhiệt đới xuất khẩu Mỹ Tho, Tiền Giang. Bưởi da xanh, xoài Hòa Lộc, sầu riêng Ri6. 200ha liên kết. VietGAP, GlobalGAP. XK sang EU, Nhật, Hàn. 20 tấn/ngày. |
 
+
+#### Ảnh giới thiệu nhà cung cấp (image_url) — Nguồn: Unsplash (miễn phí)
+
+| STT | Tên NCC | Chủ đề ảnh | Link ảnh |
+| :---: | :--- | :--- | :--- |
+| 1 | Gờ Cafe | Hạt cà phê rang xay | `https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=800&q=80` |
+| 2 | Highlands Coffee | Cà phê thưởng thức | `https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=800&q=80` |
+| 3 | Organica | Rau xanh hữu cơ tươi | `https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80` |
+| 4 | Koita | Sữa tươi hữu cơ | `https://images.unsplash.com/photo-1563636619-e9143da7973b?w=800&q=80` |
+| 5 | Mùa | Vườn rau nhà kính | `https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80` |
+| 6 | SonlanGa | Trà thảo mộc khô | `https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=800&q=80` |
+| 7 | Health Paradise | Ngũ cốc & hạt dinh dưỡng | `https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80` |
+| 8 | Co.op Finest | Quầy thực phẩm cao cấp | `https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80` |
+| 9 | Vua Gạo | Cánh đồng lúa vàng | `https://images.unsplash.com/photo-1536054953991-6c3cbeab783c?w=800&q=80` |
+| 10 | Cát Tường | Trái cây nhiệt đới | `https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800&q=80` |
+
 ---
 
 ## 📅 Nhật ký cập nhật
+
+### [2026-07-06 21:40] Cập nhật ảnh giới thiệu cho 10 Nhà cung cấp
+* **Tác vụ**: Tìm và gán ảnh giới thiệu chất lượng cao từ Unsplash cho 10 NCC, phù hợp với chủ đề kinh doanh (cà phê, rau hữu cơ, sữa, trà thảo mộc, ngũ cốc, siêu thị, lúa gạo, trái cây).
+* **Trạng thái**: ✅ Đã hoàn thành.
 
 ### [2026-07-06 21:32] Tạo sinh thông tin chi tiết cho 10 Nhà cung cấp
 * **Tác vụ**: Bổ sung mô tả doanh nghiệp chi tiết chuẩn enterprise cho 10 NCC: lĩnh vực hoạt động, chứng nhận chất lượng (VietGAP, GlobalGAP, USDA, ISO, HACCP...), quy mô sản xuất và năng lực cung ứng.
