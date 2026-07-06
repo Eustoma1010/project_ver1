@@ -49,9 +49,28 @@ Tài liệu này ghi lại toàn bộ các thay đổi về cơ sở dữ liệu
 | 9 | Vua Gạo | `vua_gao_owner` | Miền Nam | Long An | 1101823456 | 18008012 | info@vuagaoviet.com | APPROVED |
 | 10 | Cát Tường | `cat_tuong_owner` | Miền Nam | Tiền Giang | 1201234567 | 02733855667 | traicay@cattuongfruit.com | APPROVED |
 
+#### Giới thiệu doanh nghiệp (Description)
+
+| STT | Tên NCC | Mô tả doanh nghiệp |
+| :---: | :--- | :--- |
+| 1 | **Gờ Cafe** | Thương hiệu cà phê đặc sản Buôn Ma Thuột. Cung cấp Robusta & Arabica nguyên chất từ vườn hữu cơ canh tác bền vững. Chứng nhận 4C, UTZ. Năng lực: 50 tấn cà phê nhân/năm. |
+| 2 | **Highlands Coffee** | Chuỗi cà phê hàng đầu VN (700+ cửa hàng). Cà phê rang xay cao cấp & trà đặc trưng. Nguyên liệu từ Lâm Đồng. ISO 22000, HACCP. Năng lực: 200 tấn/năm. |
+| 3 | **Organica** | Hệ thống phân phối thực phẩm hữu cơ uy tín (từ 2012). Hợp tác 30+ nông trại hữu cơ. Chứng nhận USDA, EU Organic, PGS VN. Năng lực: 500 đơn/ngày. |
+| 4 | **Koita** | Sữa hữu cơ cao cấp nhập khẩu từ Ý, phân phối Đông Nam Á. EU Organic, không chất bảo quản. Kho lạnh 10.000 lít tại Q.2 TP.HCM. Đối tác khách sạn 5 sao. |
+| 5 | **Mùa** | Nông sản hữu cơ Đà Lạt. Trang trại 5ha nhà kính hiện đại, tưới nhỏ giọt Israel. Rau củ quả không hóa chất. VietGAP, PGS. Năng lực: 2 tấn rau/ngày. |
+| 6 | **SonlanGa** | HTX nông nghiệp cộng đồng Gia Lai, 45 hộ đồng bào Jrai, 120ha canh tác. Trà thảo mộc, cà phê mật ong, hạt điều. OCOP 4 sao, VietGAP. 30 tấn/năm. |
+| 7 | **Health Paradise** | Thương hiệu superfood hữu cơ Malaysia. Hạt quinoa, chia, lanh, granola. USDA Organic, Non-GMO. VP & kho tại Pearl Plaza TP.HCM. 15.000 SP/tháng. |
+| 8 | **Co.op Finest** | Dòng cao cấp Saigon Co.op (800+ điểm bán). Rau hữu cơ, trái cây NK, thịt bò Úc, hải sản tươi. QR truy xuất nguồn gốc. GlobalGAP, ISO 22000. 50.000 SP/tháng. |
+| 9 | **Vua Gạo** | Gạo sạch chuẩn xuất khẩu, KCN Tân Đô, Long An. Vùng nguyên liệu 500ha liên kết. ST25, Jasmine, gạo lứt hữu cơ. HACCP, GlobalGAP. Xay xát: 100 tấn/ngày. |
+| 10 | **Cát Tường** | Trái cây nhiệt đới xuất khẩu Mỹ Tho, Tiền Giang. Bưởi da xanh, xoài Hòa Lộc, sầu riêng Ri6. 200ha liên kết. VietGAP, GlobalGAP. XK sang EU, Nhật, Hàn. 20 tấn/ngày. |
+
 ---
 
 ## 📅 Nhật ký cập nhật
+
+### [2026-07-06 21:32] Tạo sinh thông tin chi tiết cho 10 Nhà cung cấp
+* **Tác vụ**: Bổ sung mô tả doanh nghiệp chi tiết chuẩn enterprise cho 10 NCC: lĩnh vực hoạt động, chứng nhận chất lượng (VietGAP, GlobalGAP, USDA, ISO, HACCP...), quy mô sản xuất và năng lực cung ứng.
+* **Trạng thái**: ✅ Đã hoàn thành.
 
 ### [2026-07-06 21:27] Khôi phục 10 Nhà cung cấp từ Backup
 * **Tác vụ**: Trích xuất dữ liệu 10 Farm từ `db.sqlite3.bak`, tạo lại trong CSDL hiện tại và gán đúng owner. Chuyển role 10 owner sang `FARMER` theo luồng hệ thống.
