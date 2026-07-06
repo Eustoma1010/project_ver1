@@ -1,7 +1,28 @@
 # Nhật ký Kiểm thử & Thay đổi Cơ sở dữ liệu (testcase_csdl.md)
 
 Tài liệu này ghi lại toàn bộ các thay đổi về cơ sở dữ liệu, tài khoản kiểm thử, các thao tác reset blockchain và các ca kiểm thử được thực hiện trong hệ thống.
-## 🔑 Danh sách Tài khoản & Mật khẩu Kiểm thử
+## 🏢 Cấu hình trường thông tin chuẩn doanh nghiệp (Enterprise Schema Configuration)
+
+Nhằm đảm bảo tính chính xác và tuân thủ các chuẩn mực dữ liệu doanh nghiệp trong nước và quốc tế, các trường thông tin của mô hình `CustomUser` và `Farm` được cấu hình lại với các ràng buộc nghiệp vụ chặt chẽ dưới đây:
+
+### 1. Mô hình Người dùng (`CustomUser`)
+| Tên trường | Kiểu dữ liệu | Ràng buộc nghiệp vụ (Xác thực dữ liệu) | Ý nghĩa / Quy chuẩn |
+| :--- | :--- | :--- | :--- |
+| `username` | `CharField` | Tối thiểu 3 ký tự, chỉ gồm chữ cái và chữ số (`isalnum`). | Tên đăng nhập định danh duy nhất. |
+| `phone_number`| `CharField` | Regex: `^0\d{9,10}$` (độ dài 10 hoặc 11 số, bắt đầu bằng `0`). | Số điện thoại di động/cá nhân hợp lệ tại Việt Nam. |
+| `email` | `EmailField`| Định dạng email quốc tế tiêu chuẩn. | Địa chỉ email của cá nhân đăng ký tài khoản. |
+
+### 2. Mô hình Nhà cung cấp / Nông trại (`Farm`)
+| Tên trường | Kiểu dữ liệu | Ràng buộc nghiệp vụ (Xác thực dữ liệu) | Ý nghĩa / Quy chuẩn |
+| :--- | :--- | :--- | :--- |
+| `name` | `CharField` | Tối thiểu 3 ký tự. Bắt buộc nhập. | Tên pháp nhân / tên thương hiệu doanh nghiệp. |
+| `tax_code` | `CharField` | Regex: `^\d{10}$|^\d{13}$|^\d{10}-\d{3}$` (10 số đối với DN chính, hoặc 13 số đối với chi nhánh/đơn vị trực thuộc). | Mã số thuế doanh nghiệp hợp pháp tại Việt Nam. |
+| `phone` | `CharField` | Regex: `^0\d{9,10}$` (độ dài 10-11 số, bắt đầu bằng `0`). Bắt buộc nhập. | Số điện thoại hotline liên hệ chính thức của doanh nghiệp. |
+| `email` | `EmailField`| Định dạng email doanh nghiệp. Bắt buộc nhập. | Hòm thư điện tử chính thức nhận thông tin giao dịch. |
+| `business_license` | `FileField` | Bắt buộc đính kèm tệp tài liệu/hình ảnh khi đăng ký. | Giấy chứng nhận đăng ký kinh doanh/Giấy chứng nhận cơ sở đủ điều kiện ATVSTP. |
+
+---
+
 
 Dưới đây là danh sách các tài khoản kiểm thử đã được thiết lập sẵn trong hệ thống với cơ sở dữ liệu sạch:
 

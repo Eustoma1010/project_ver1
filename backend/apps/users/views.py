@@ -32,8 +32,20 @@ def signup_view(request):
         phone_number = request.POST.get("phone_number", "")
         address = request.POST.get("address", "")
         
+        import re
+        
         if CustomUser.objects.filter(username=username).exists():
             messages.error(request, "Tên đăng nhập đã tồn tại.")
+        elif not username or len(username) < 3:
+            messages.error(request, "Tên đăng nhập phải có ít nhất 3 ký tự.")
+        elif not username.isalnum():
+            messages.error(request, "Tên đăng nhập chỉ được chứa chữ cái và chữ số.")
+        elif not email or not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+            messages.error(request, "Địa chỉ email không hợp lệ.")
+        elif not password or len(password) < 6:
+            messages.error(request, "Mật khẩu phải có ít nhất 6 ký tự.")
+        elif phone_number and (not phone_number.isdigit() or len(phone_number) < 10 or len(phone_number) > 11 or not phone_number.startswith('0')):
+            messages.error(request, "Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và gồm 10 hoặc 11 chữ số).")
         else:
             user = CustomUser.objects.create_user(
                 username=username,

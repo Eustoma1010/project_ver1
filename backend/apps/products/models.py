@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import RegexValidator, MinLengthValidator
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Tên danh mục")
@@ -20,7 +21,11 @@ class Farm(models.Model):
         ("REJECTED", "Bị từ chối"),
         ("SUSPENDED", "Bị đình chỉ hoạt động"),
     )
-    name = models.CharField(max_length=200, verbose_name="Tên nhà cung cấp")
+    name = models.CharField(
+        max_length=200,
+        validators=[MinLengthValidator(3)],
+        verbose_name="Tên nhà cung cấp"
+    )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -31,9 +36,27 @@ class Farm(models.Model):
     )
     region = models.CharField(max_length=100, verbose_name="Khu vực/Vùng miền")
     province = models.CharField(max_length=100, blank=True, verbose_name="Tỉnh/Thành phố")
-    tax_code = models.CharField(max_length=50, blank=True, verbose_name="Mã số thuế")
-    phone = models.CharField(max_length=20, blank=True, verbose_name="Số điện thoại liên hệ")
-    email = models.EmailField(blank=True, verbose_name="Email liên hệ")
+    
+    tax_code_validator = RegexValidator(
+        regex=r'^\d{10}$|^\d{13}$|^\d{10}-\d{3}$',
+        message="Mã số thuế phải gồm 10 chữ số hoặc 13 chữ số (ví dụ: 1234567890 hoặc 1234567890-123)."
+    )
+    tax_code = models.CharField(
+        max_length=50,
+        validators=[tax_code_validator],
+        verbose_name="Mã số thuế"
+    )
+    
+    phone_validator = RegexValidator(
+        regex=r'^0\d{9,10}$',
+        message="Số điện thoại liên hệ phải bắt đầu bằng số 0 và gồm 10 hoặc 11 chữ số."
+    )
+    phone = models.CharField(
+        max_length=20,
+        validators=[phone_validator],
+        verbose_name="Số điện thoại liên hệ"
+    )
+    email = models.EmailField(verbose_name="Email liên hệ")
     description = models.TextField(blank=True, verbose_name="Giới thiệu doanh nghiệp")
     approved = models.BooleanField(default=False, verbose_name="Được duyệt")
     status = models.CharField(
@@ -45,7 +68,7 @@ class Farm(models.Model):
     business_license = models.FileField(
         upload_to="licenses/",
         null=True,
-        blank=True,
+        blank=False,
         verbose_name="Ảnh Giấy phép kinh doanh"
     )
     last_audit_date = models.DateField(null=True, blank=True, verbose_name="Ngày kiểm định gần nhất")
