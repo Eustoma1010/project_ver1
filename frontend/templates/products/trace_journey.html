@@ -8,7 +8,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Lexend:wght@400;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Lexend:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,10 +17,9 @@
       theme: {
         extend: {
           fontFamily: {
-            serif: ['Playfair Display', 'Georgia', 'serif'],
+            display: ['Manrope', 'sans-serif'],
             sans: ['Be Vietnam Pro', 'sans-serif'],
             lexend: ['Lexend', 'sans-serif'],
-            garamond: ['Cormorant Garamond', 'serif'],
           }
         }
       }
@@ -114,7 +113,7 @@
       font-family: 'Be Vietnam Pro', sans-serif;
     }
     .m-title {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: 'Manrope', sans-serif;
       font-weight: 700;
       letter-spacing: -0.02em;
       font-size: clamp(2.25rem, 5vw, 3.25rem);
@@ -314,7 +313,7 @@
       <!-- Main Journey Supply Chain Timeline -->
       <div class="bg-white/80 backdrop-blur-md border border-[{{ primary_color }}]/10 rounded-[32px] p-6 sm:p-8 space-y-8 shadow-sm hover:shadow-md hover:border-[{{ primary_color }}]/15 transition-all duration-300 animate-in">
         <div class="flex items-center justify-between border-b border-border pb-5">
-          <h3 class="text-xl font-bold font-serif flex items-center gap-2.5">
+          <h3 class="text-xl font-bold font-display flex items-center gap-2.5">
             <i data-lucide="route" class="w-6 h-6 text-[{{ primary_color }}]"></i> Bản đồ Nhật ký Chuỗi Cung Ứng
           </h3>
           <span class="text-[10px] bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full font-bold uppercase tracking-wider">
