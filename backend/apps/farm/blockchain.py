@@ -4,7 +4,7 @@ from web3 import Web3
 from django.conf import settings
 
 # Địa chỉ hợp đồng thông minh đã được deploy trên Hardhat local network
-CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 
 # Hardhat local network RPC
 RPC_URL = "http://127.0.0.1:8545"
