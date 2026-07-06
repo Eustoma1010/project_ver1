@@ -31,11 +31,31 @@ Tài liệu này ghi lại toàn bộ các thay đổi về cơ sở dữ liệu
 | 9 | `vua_gao_owner` | Võ Quốc Việt | info@vuagaoviet.com | 0918111222 | Lô A1, KCN Tân Đô, Đức Hòa, Long An |
 | 10 | `cat_tuong_owner` | Nguyễn Cát Tường | traicay@cattuongfruit.com | 0903112233 | Ấp Mỹ Lợi, Mỹ Phong, TP. Mỹ Tho, Tiền Giang |
 
+> [!IMPORTANT]
+> Vai trò hiện tại của 10 owner đã được nâng lên `FARMER` theo đúng luồng hệ thống (Admin duyệt → role = FARMER).
+
+### 3. 10 Nhà cung cấp (Farm) — Dữ liệu khôi phục từ Backup
+
+| STT | Tên NCC | Owner | Khu vực | Tỉnh/TP | Mã số thuế | SĐT liên hệ | Email | Trạng thái |
+| :---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :---: |
+| 1 | Gờ Cafe | `go_cafe_owner` | Miền Trung | Đắk Lắk | 6001234567 | 02623852147 | contact@gocafe.vn | APPROVED |
+| 2 | Highlands Coffee | `highlands_coffee_owner` | Miền Trung | Lâm Đồng | 0311234568 | 19001755 | contact@highlandscoffee.com.vn | APPROVED |
+| 3 | Organica | `organica_owner` | Miền Trung | Lâm Đồng | 0312345678 | 02838234567 | info@organica.vn | APPROVED |
+| 4 | Koita | `koita_owner` | Miền Nam | TP. HCM | 0313456789 | 02862812345 | import@koita.it | APPROVED |
+| 5 | Mùa | `mua_owner` | Miền Trung | Lâm Đồng | 5801234987 | 02633811223 | nongsan@muaorganics.com | APPROVED |
+| 6 | SonlanGa | `sonlanga_owner` | Miền Trung | Gia Lai | 5900987654 | 02693822456 | contact@sonlanga.com | APPROVED |
+| 7 | Health Paradise | `health_paradise_owner` | Miền Nam | TP. HCM | 0314567890 | 02835123456 | support@healthparadise.com.my | APPROVED |
+| 8 | Co.op Finest | `coop_finest_owner` | Miền Nam | TP. HCM | 0300234567 | 1900555568 | chamsockhachhang@coopfinest.vn | APPROVED |
+| 9 | Vua Gạo | `vua_gao_owner` | Miền Nam | Long An | 1101823456 | 18008012 | info@vuagaoviet.com | APPROVED |
+| 10 | Cát Tường | `cat_tuong_owner` | Miền Nam | Tiền Giang | 1201234567 | 02733855667 | traicay@cattuongfruit.com | APPROVED |
+
 ---
 
 ## 📅 Nhật ký cập nhật
 
-### [2026-07-06 20:58] Khởi tạo tệp nhật ký kiểm thử
+### [2026-07-06 21:27] Khôi phục 10 Nhà cung cấp từ Backup
+* **Tác vụ**: Trích xuất dữ liệu 10 Farm từ `db.sqlite3.bak`, tạo lại trong CSDL hiện tại và gán đúng owner. Chuyển role 10 owner sang `FARMER` theo luồng hệ thống.
+* **Trạng thái**: ✅ Đã hoàn thành. 10/10 farm khôi phục thành công với status `APPROVED`.
 * **Tác vụ**: Tạo tệp `testcase_csdl.md` để ghi nhận lịch sử thay đổi.
 * **Trạng thái**: Đã hoàn thành.
 
